@@ -64,7 +64,11 @@ export const refreshTokensRelations = relations(refreshTokens, ({ one }) => ({
 
 export const geographicObjectsRelations = relations(
   geographicObjects,
-  ({ one, many }) => ({
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [geographicObjects.applicationId],
+      references: [applications.id],
+    }),
     objectType: one(objectTypes, {
       fields: [geographicObjects.objectTypeId],
       references: [objectTypes.id],
@@ -81,17 +85,13 @@ export const geographicObjectsRelations = relations(
       fields: [geographicObjects.createdBy],
       references: [users.id],
     }),
-    applications: many(applications),
   })
 );
 
 export const applicationsRelations = relations(
   applications,
   ({ one, many }) => ({
-    geographicObject: one(geographicObjects, {
-      fields: [applications.geographicObjectId],
-      references: [geographicObjects.id],
-    }),
+    geographicObjects: many(geographicObjects),
     creator: one(users, {
       fields: [applications.createdBy],
       references: [users.id],

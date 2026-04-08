@@ -55,11 +55,5 @@ export const actionTypeEnum = pgEnum('action_type', [
 ]);
 
 export const documentTypeEnum = pgEnum('document_type', [
-  'dalolatnoma',            // Geometriya dalolatnamasi
-  'district_commission_conclusion', // Tuman komissiya xulosasi
-  'regional_commission_conclusion', // Viloyat komissiya xulosasi
-  'official_letter',        // Rasmiy xat
-  'decision_draft',         // Qaror loyihasi
-  'expertise_conclusion',   // Davlat ekspertiza xulosasi
-  'other',                  // Boshqa
+  'geometry_file', // GeoJSON fayl (geometriya)
 ]);

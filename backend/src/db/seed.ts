@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import { db } from './db';
 import { regions, districts, users } from './schema';
 import bcrypt from 'bcryptjs';
@@ -268,11 +269,14 @@ async function seed() {
     .map((d) => ({ ...d, regionId: regionMap.get(d.regionCode)! }))
     .filter((d) => d.regionId);
 
-  const insertedDistricts = await db
-    .insert(districts)
-    .values(districtsWithIds.map(({ regionCode: _, ...d }) => d))
-    .onConflictDoNothing()
-    .returning({ id: districts.id });
+  let insertedDistricts: { id: number }[] = [];
+  if (districtsWithIds.length > 0) {
+    insertedDistricts = await db
+      .insert(districts)
+      .values(districtsWithIds.map(({ regionCode: _, ...d }) => d))
+      .onConflictDoNothing()
+      .returning({ id: districts.id });
+  }
 
   console.log(`   ✅ ${insertedDistricts.length} ta tuman kiritildi`);
 
@@ -291,6 +295,24 @@ async function seed() {
     .onConflictDoNothing();
 
   console.log('   ✅ Admin yaratildi  →  login: admin  |  parol: Admin@12345');
+
+  // DKP Filial — Toshkent shahar, Yunusobod tumani
+  const [toshkentShahar] = await db.select().from(regions).where(eq(regions.code, '1726'));
+  const [yunusobod] = await db.select().from(districts).where(eq(districts.code, '1726235'));
+
+  await db
+    .insert(users)
+    .values({
+      username: 'dkp_filial_toshkent',
+      passwordHash,
+      fullName: 'DKP Filial Xodimi (Toshkent)',
+      role: 'dkp_filial',
+      regionId: toshkentShahar?.id,
+      districtId: yunusobod?.id,
+    })
+    .onConflictDoNothing();
+
+  console.log('   ✅ DKP Filial yaratildi  →  login: dkp_filial_toshkent  |  parol: Admin@12345');
   console.log('\n✅ Seed muvaffaqiyatli yakunlandi!');
 }
 

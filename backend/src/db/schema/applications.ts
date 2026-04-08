@@ -6,7 +6,6 @@ import {
   timestamp,
 } from 'drizzle-orm/pg-core';
 import { applicationStatusEnum } from './enums';
-import { geographicObjects } from './geographic-objects';
 import { users } from './users';
 
 export const applications = pgTable('applications', {
@@ -16,10 +15,6 @@ export const applications = pgTable('applications', {
   applicationNumber: varchar('application_number', { length: 50 })
     .notNull()
     .unique(),
-
-  geographicObjectId: integer('geographic_object_id')
-    .references(() => geographicObjects.id)
-    .notNull(),
 
   // Hozirgi holat (workflow bosqichi)
   currentStatus: applicationStatusEnum('current_status')

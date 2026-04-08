@@ -8,6 +8,13 @@
       "when": 1775570159654,
       "tag": "0000_colossal_vulcan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775651642652,
+      "tag": "0001_perpetual_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }

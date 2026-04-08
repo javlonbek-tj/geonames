@@ -5,8 +5,13 @@ import * as objectTypesController from './object-types/object-types.controller';
 
 const router = Router();
 
-// Barcha admin routelari himoyalangan
-router.use(authenticate, authorize('admin'));
+// GET ob'yekt turlari — barcha autentifikatsiya qilingan foydalanuvchilar uchun
+router.use(authenticate);
+router.get('/object-categories', objectTypesController.getCategories);
+router.get('/object-types', objectTypesController.getTypes);
+
+// Qolgan barcha operatsiyalar faqat admin uchun
+router.use(authorize('admin'));
 
 // ─── Foydalanuvchilar ─────────────────────────────────────────────────────────
 // GET    /api/admin/users?page=1&limit=20&role=dkp_filial&search=ali

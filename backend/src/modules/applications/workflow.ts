@@ -1,0 +1,182 @@
+// 9 bosqichli workflow tranzitsiya xaritasi
+// Har bir holat uchun: qaysi harakat, kim bajara oladi, keyingi holat
+
+type ActionType =
+  | 'submit'
+  | 'approve'
+  | 'return'
+  | 'confirm_geometry';
+
+type Transition = {
+  allowedRole: string;
+  nextStatus: string; // '' = service tomonidan dinamik aniqlanadi
+  actionType: ActionType;
+  label: string;
+};
+
+type TransitionMap = Record<string, Record<string, Transition>>;
+
+export const WORKFLOW: TransitionMap = {
+
+  // BOSQICH 1: DKP Filial — SHP fayl yuklaydi
+  // nextStatus dinamik: existsInRegistry=true → step_1_1, false → step_2
+  step_1_geometry_uploaded: {
+    submit: {
+      allowedRole: 'dkp_filial',
+      nextStatus: '', // performAction da existsInRegistry ga qarab aniqlanadi
+      actionType: 'submit',
+      label: "SHP fayl yuklandi, keyingi bosqichga yuborish",
+    },
+  },
+
+  // BOSQICH 1.1: Tuman komissiya — reestrdа mavjud, dalolatnoma bilan tasdiqlash → yakunlandi
+  step_1_1_district_commission: {
+    confirm_geometry: {
+      allowedRole: 'district_commission',
+      nextStatus: 'completed',
+      actionType: 'confirm_geometry',
+      label: 'Dalolatnoma bilan tasdiqlash va yakunlash',
+    },
+  },
+
+  // BOSQICH 2: Tuman hokimligi — nom beradi, tuman komissiyasiga yuboradi
+  step_2_district_hokimlik: {
+    submit: {
+      allowedRole: 'district_hokimlik',
+      nextStatus: 'step_2_1_district_commission',
+      actionType: 'submit',
+      label: 'Nom berildi, tuman komissiyasiga yuborish',
+    },
+  },
+
+  // BOSQICH 2.1: Tuman komissiya — xulosa → viloyat komissiyasiga
+  step_2_1_district_commission: {
+    submit: {
+      allowedRole: 'district_commission',
+      nextStatus: 'step_2_2_regional_commission',
+      actionType: 'submit',
+      label: 'Xulosa kiritildi, viloyat komissiyasiga yuborish',
+    },
+  },
+
+  // BOSQICH 2.2: Viloyat komissiya — xulosa → viloyat hokimligiga
+  step_2_2_regional_commission: {
+    submit: {
+      allowedRole: 'regional_commission',
+      nextStatus: 'step_3_regional_hokimlik',
+      actionType: 'submit',
+      label: "Viloyat komissiya xulosasi kiritildi, viloyat hokimligiga yuborish",
+    },
+  },
+
+  // BOSQICH 3: Viloyat hokimligi → Kadastr agentligiga
+  step_3_regional_hokimlik: {
+    submit: {
+      allowedRole: 'regional_hokimlik',
+      nextStatus: 'step_4_kadastr_agency',
+      actionType: 'submit',
+      label: 'Kadastr agentligiga davlat ekspertizasi uchun yuborish',
+    },
+  },
+
+  // BOSQICH 4: Kadastr agentligi → DKP markaziy yoki viloyat hokimligiga qaytarish
+  step_4_kadastr_agency: {
+    approve: {
+      allowedRole: 'kadastr_agency',
+      nextStatus: 'step_5_dkp_central',
+      actionType: 'approve',
+      label: "DKP markaziy apparatga davlat ekspertizasi uchun yuborish",
+    },
+    return: {
+      allowedRole: 'kadastr_agency',
+      nextStatus: 'step_3_regional_hokimlik',
+      actionType: 'return',
+      label: "Qayta ko'rib chiqish uchun viloyat hokimligiga qaytarish",
+    },
+  },
+
+  // BOSQICH 5: DKP markaziy → Kadastr agentligiga
+  step_5_dkp_central: {
+    submit: {
+      allowedRole: 'dkp_central',
+      nextStatus: 'step_6_kadastr_agency_final',
+      actionType: 'submit',
+      label: 'Davlat ekspertizasi xulosasi kiritildi, Kadastr agentligiga yuborish',
+    },
+  },
+
+  // BOSQICH 6: Kadastr agentligi yakuniy → tasdiqlash yoki DKP markaziyga qaytarish
+  step_6_kadastr_agency_final: {
+    approve: {
+      allowedRole: 'kadastr_agency',
+      nextStatus: 'step_7_regional_hokimlik',
+      actionType: 'approve',
+      label: 'Tasdiqlandi, viloyat hokimligiga rasmiy xat bilan yuborish',
+    },
+    return: {
+      allowedRole: 'kadastr_agency',
+      nextStatus: 'step_5_dkp_central',
+      actionType: 'return',
+      label: "Qayta ko'rib chiqish uchun DKP markaziy apparatga qaytarish",
+    },
+  },
+
+  // BOSQICH 7: Viloyat hokimligi — qaror loyihasi → tuman hokimligiga
+  step_7_regional_hokimlik: {
+    submit: {
+      allowedRole: 'regional_hokimlik',
+      nextStatus: 'step_8_district_hokimlik',
+      actionType: 'submit',
+      label: "Qaror loyihasi tayyorlandi, tuman hokimligiga muhokama uchun yuborish",
+    },
+  },
+
+  // BOSQICH 8: Tuman hokimligi — Kengashga yoki qaytarish
+  step_8_district_hokimlik: {
+    approve: {
+      allowedRole: 'district_hokimlik',
+      nextStatus: 'step_9_peoples_council',
+      actionType: 'approve',
+      label: "Muhokama o'tkazildi, Xalq deputatlari Kengashiga kiritish",
+    },
+    return: {
+      allowedRole: 'district_hokimlik',
+      nextStatus: 'step_2_1_district_commission',
+      actionType: 'return',
+      label: "Qayta ko'rib chiqish uchun tuman komissiyasiga qaytarish",
+    },
+  },
+
+  // BOSQICH 9: Xalq deputatlari Kengashi → yakunlandi
+  step_9_peoples_council: {
+    approve: {
+      allowedRole: 'peoples_council',
+      nextStatus: 'completed',
+      actionType: 'approve',
+      label: "Qaror qabul qilindi, E-qaror tizimiga yuborish",
+    },
+  },
+};
+
+export function getAvailableActions(status: string): Record<string, Transition> {
+  return WORKFLOW[status] ?? {};
+}
+
+export function resolveTransition(
+  status: string,
+  action: string,
+  userRole: string,
+): Transition {
+  const transitions = WORKFLOW[status];
+  if (!transitions) {
+    throw new Error(`"${status}" holati uchun harakat mavjud emas`);
+  }
+  const transition = transitions[action];
+  if (!transition) {
+    throw new Error(`"${status}" holatida "${action}" harakati mavjud emas`);
+  }
+  if (transition.allowedRole !== userRole) {
+    throw new Error(`Bu harakatni bajarish uchun ruxsat yo'q`);
+  }
+  return transition;
+}

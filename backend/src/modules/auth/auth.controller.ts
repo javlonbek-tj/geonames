@@ -23,8 +23,10 @@ export async function login(req: Request, res: Response) {
 
   res.status(200).json({
     status: 'success',
-    accessToken: result.accessToken,
-    user: result.user,
+    data: {
+      accessToken: result.accessToken,
+      user: result.user,
+    },
   });
 }
 
