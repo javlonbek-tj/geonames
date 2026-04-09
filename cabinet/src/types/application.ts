@@ -3,8 +3,8 @@ import type { GeographicObject } from './geographic-object';
 
 export type ApplicationStatus =
   | 'step_1_geometry_uploaded'
-  | 'step_1_1_district_commission'
-  | 'step_1_2_dkp_filial_proposal'
+  | 'step_1_1_dkp_regional'
+  | 'step_1_2_dkp_coordination'
   | 'step_2_district_hokimlik'
   | 'step_2_1_district_commission'
   | 'step_2_2_regional_commission'

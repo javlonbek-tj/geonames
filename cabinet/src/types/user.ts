@@ -1,6 +1,7 @@
 export type UserRole =
   | 'admin'
   | 'dkp_filial'
+  | 'dkp_regional'
   | 'district_commission'
   | 'district_hokimlik'
   | 'regional_commission'

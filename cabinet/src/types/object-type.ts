@@ -1,5 +1,6 @@
 export interface ObjectCategory {
   id: number;
+  code: string | null;
   nameUz: string;
   nameKrill: string | null;
   objectTypes: ObjectType[];

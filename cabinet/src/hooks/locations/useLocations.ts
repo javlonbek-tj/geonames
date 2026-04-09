@@ -17,3 +17,11 @@ export function useDistricts(regionId?: number) {
     staleTime: Infinity,
   });
 }
+
+export function useAllDistricts() {
+  return useQuery({
+    queryKey: ['districts', 'all'],
+    queryFn: () => locationsApi.getDistricts().then((r) => r.data.data),
+    staleTime: Infinity,
+  });
+}

@@ -1,14 +1,14 @@
 import { z } from 'zod';
 
 const objectItemSchema = z.object({
-  nameUz: z.string().min(1, 'Nomi kiritilishi shart').max(200),
+  nameUz: z.string().min(1, 'Nomi kiritilishi shart').max(200).optional(),
   nameKrill: z.string().max(200).optional(),
   registryNumber: z.string().max(50).optional(),
-  geometry: z.object({ type: z.string() }).passthrough(),
+  objectTypeId: z.number().int().positive().optional(),
+  geometry: z.looseObject({ type: z.string() }),
 });
 
 export const createGeographicObjectSchema = z.object({
-  objectTypeId: z.number({ error: "Ob'yekt turi tanlanishi shart" }).int().positive(),
   regionId: z.number({ error: 'Viloyat tanlanishi shart' }).int().positive(),
   districtId: z.number({ error: 'Tuman tanlanishi shart' }).int().positive(),
   existsInRegistry: z.boolean(),

@@ -9,3 +9,32 @@
 body {
   font-family: var(--font-sans);
 }
+
+.registry-table .ant-table-tbody > tr > td {
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+}
+
+
+.registry-table .ant-table-pagination {
+  padding: 10px 12px !important;
+  margin: 0 !important;
+  border-top: 1px solid #f0f0f0;
+  display: flex !important;
+  align-items: center;
+}
+
+.registry-table .ant-table-pagination .ant-pagination-total-text {
+  margin-inline-end: auto !important;
+}
+
+.geo-row-active > td {
+  background: #fff7e6 !important;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

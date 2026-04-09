@@ -13,7 +13,7 @@ export function useObjectTypes(categoryId?: number) {
   return useQuery({
     queryKey: ['object-types', categoryId],
     queryFn: () => objectTypesApi.getTypes(categoryId).then((r) => r.data.data),
-    enabled: !!categoryId,
+    // categoryId berilmasa barcha turlar yuklanadi (detail sahifasida kerak)
     staleTime: Infinity,
   });
 }

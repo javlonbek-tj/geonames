@@ -9,6 +9,10 @@ const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const ApplicationsPage = lazy(() => import('@/pages/applications/ApplicationsPage'));
 const ApplicationDetailPage = lazy(() => import('@/pages/applications/ApplicationDetailPage'));
 const CreateGeographicObjectPage = lazy(() => import('@/pages/geographic-objects/CreateGeographicObjectPage'));
+const RegistryPage = lazy(() => import('@/pages/geographic-objects/RegistryPage'));
+const GeographicObjectDetailPage = lazy(() => import('@/pages/geographic-objects/GeographicObjectDetailPage'));
+const UsersPage = lazy(() => import('@/pages/admin/UsersPage'));
+const ObjectTypesPage = lazy(() => import('@/pages/admin/ObjectTypesPage'));
 
 const fallback = (
   <div className='flex h-screen items-center justify-center'>
@@ -38,7 +42,11 @@ const router = createBrowserRouter([
           { path: '/', element: wrap(ApplicationsPage) },
           { path: '/applications', element: wrap(ApplicationsPage) },
           { path: '/applications/:id', element: wrap(ApplicationDetailPage) },
+          { path: '/geographic-objects', element: wrap(RegistryPage) },
+          { path: '/geographic-objects/:id', element: wrap(GeographicObjectDetailPage) },
           { path: '/geographic-objects/create', element: wrap(CreateGeographicObjectPage) },
+          { path: '/admin/users', element: wrap(UsersPage) },
+          { path: '/admin/object-types', element: wrap(ObjectTypesPage) },
         ],
       },
     ],

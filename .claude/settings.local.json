@@ -9,7 +9,9 @@
       "Bash(curl -s http://localhost:3000/api/auth/login -X POST -H 'Content-Type: application/json' -d '{\"username\":\"dkp_andijon\",\"password\":\"Test@1234\"}')",
       "Bash(python -m json.tool)",
       "Bash(npm create:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

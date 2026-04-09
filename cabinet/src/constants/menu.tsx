@@ -3,6 +3,7 @@ import {
   FileTextOutlined,
   GlobalOutlined,
   TeamOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons';
 import type { UserRole } from '@/types';
 
@@ -33,9 +34,15 @@ export const menuItems: MenuItem[] = [
     roles: null,
   },
   {
-    key: '/admin',
+    key: '/admin/users',
     icon: <TeamOutlined />,
     label: 'Foydalanuvchilar',
+    roles: ['admin'],
+  },
+  {
+    key: '/admin/object-types',
+    icon: <AppstoreOutlined />,
+    label: "Ob'yekt turlari",
     roles: ['admin'],
   },
 ];

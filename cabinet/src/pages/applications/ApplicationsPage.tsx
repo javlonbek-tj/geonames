@@ -27,8 +27,9 @@ const columns: TableProps<Application>['columns'] = [
     render: (_, record) => {
       const objs = record.geographicObjects ?? [];
       if (objs.length === 0) return '—';
-      if (objs.length === 1) return objs[0].nameUz;
-      return `${objs[0].nameUz} (+${objs.length - 1} ta)`;
+      const firstName = objs[0].nameUz ?? 'Nomsiz';
+      if (objs.length === 1) return firstName;
+      return `${firstName} (+${objs.length - 1} ta)`;
     },
   },
   {
@@ -73,7 +74,7 @@ export default function ApplicationsPage() {
 
   const { data, isLoading } = useApplications({
     page,
-    limit: 20,
+    limit: 10,
     status,
     tab: tab === 'history' ? 'history' : undefined,
   });
@@ -129,7 +130,7 @@ export default function ApplicationsPage() {
         })}
         pagination={{
           current: page,
-          pageSize: 20,
+          pageSize: 10,
           total: data?.meta.total,
           showTotal: (total) => `Jami: ${total} ta`,
           onChange: (p) => setPage(p),

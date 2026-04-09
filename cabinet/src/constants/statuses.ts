@@ -1,9 +1,29 @@
 import type { ApplicationStatus } from '@/types';
 
+export const ACTION_LABELS: Record<string, string> = {
+  submit:   'Yuborildi',
+  approve:  'Tasdiqlandi',
+  return:   'Qaytarildi',
+  reject:   'Rad etildi',
+  attach_document:      'Hujjat biriktirildi',
+  assign_registry_number: 'Reyestr raqami biriktirildi',
+  confirm_geometry:     'Geometriya tasdiqlandi',
+};
+
+export const ACTION_COLORS: Record<string, string> = {
+  submit:  'blue',
+  approve: 'green',
+  return:  'orange',
+  reject:  'red',
+  attach_document: 'default',
+  assign_registry_number: 'purple',
+  confirm_geometry: 'cyan',
+};
+
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   step_1_geometry_uploaded:       '1. Geometriya yuklandi',
-  step_1_1_district_commission:   '1.1 Tuman komissiyasida',
-  step_1_2_dkp_filial_proposal:   '1.2 DKP filial taklif tayyorlamoqda',
+  step_1_1_dkp_regional:          '1.1 Viloyat DKP kelishishida',
+  step_1_2_dkp_coordination:           '1.2 Respublika DKP kelishishida',
   step_2_district_hokimlik:       '2. Tuman hokimligida',
   step_2_1_district_commission:   '2.1 Tuman komissiyasida (xulosa)',
   step_2_2_regional_commission:   '2.2 Viloyat komissiyasida',
@@ -20,8 +40,8 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
 
 export const STATUS_COLORS: Record<ApplicationStatus, string> = {
   step_1_geometry_uploaded:       'default',
-  step_1_1_district_commission:   'processing',
-  step_1_2_dkp_filial_proposal:   'warning',
+  step_1_1_dkp_regional:          'processing',
+  step_1_2_dkp_coordination:           'processing',
   step_2_district_hokimlik:       'processing',
   step_2_1_district_commission:   'processing',
   step_2_2_regional_commission:   'processing',
