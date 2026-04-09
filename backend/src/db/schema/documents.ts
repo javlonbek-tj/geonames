@@ -19,10 +19,9 @@ export const documents = pgTable('documents', {
   documentType: documentTypeEnum('document_type').notNull(),
 
   originalName: varchar('original_name', { length: 255 }).notNull(),
-  // Serverda saqlash yo'li: /uploads/applications/{appId}/{filename}
   filePath: varchar('file_path', { length: 500 }).notNull(),
   mimeType: varchar('mime_type', { length: 100 }),
-  fileSize: integer('file_size'), // bytes
+  fileSize: integer('file_size'),
 
   uploadedBy: integer('uploaded_by')
     .references(() => users.id)

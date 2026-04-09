@@ -15,6 +15,41 @@
       "when": 1775651642652,
       "tag": "0001_perpetual_typhoid_mary",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775718084922,
+      "tag": "0002_mute_rhino",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1775724637573,
+      "tag": "0003_conscious_ink",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1775726093563,
+      "tag": "0004_large_randall",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1775732575781,
+      "tag": "0005_friendly_sharon_ventura",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1775736090765,
+      "tag": "0006_add_comment_to_geographic_objects",
+      "breakpoints": true
     }
   ]
 }

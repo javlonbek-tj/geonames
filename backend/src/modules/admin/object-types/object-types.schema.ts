@@ -1,11 +1,13 @@
 import { z } from 'zod';
 
 export const createCategorySchema = z.object({
+  code: z.string().min(1).max(20).optional(),
   nameUz: z.string().min(1, 'Nomi kiritilishi shart').max(200),
   nameKrill: z.string().max(200).optional(),
 });
 
 export const updateCategorySchema = z.object({
+  code: z.string().min(1).max(20).nullable().optional(),
   nameUz: z.string().min(1).max(200).optional(),
   nameKrill: z.string().max(200).nullable().optional(),
 });

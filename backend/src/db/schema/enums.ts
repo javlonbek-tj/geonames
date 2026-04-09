@@ -1,25 +1,26 @@
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 export const userRoleEnum = pgEnum('user_role', [
-  'admin',               // Tizim administratori
-  'dkp_filial',          // DKP filial xodimi (tuman darajasi) — 1, 1.2-qadam
-  'district_commission', // Hududiy tuman/shahar komissiya — 1.1, 2.1-qadam
-  'district_hokimlik',   // Tuman/shahar hokimligi — 2, 8-qadam
-  'regional_commission', // Hududiy viloyat komissiya — 2.2-qadam
-  'regional_hokimlik',   // Viloyat hokimligi — 3, 7-qadam
-  'kadastr_agency',      // Kadastr agentligi markaziy apparat — 4, 6-qadam
-  'dkp_central',         // DKP markaziy apparat — 5-qadam
-  'peoples_council',     // Xalq deputatlari Kengashi — 9-qadam
+  'admin',              // System administrator
+  'dkp_filial',         // DKP district branch — step 1
+  'dkp_regional',       // DKP regional branch — step 1.1
+  'dkp_central',        // DKP central (republic level) — steps 1.2, 5
+  'district_commission',// District commission — step 2.1
+  'district_hokimlik',  // District administration — steps 2, 8
+  'regional_commission',// Regional commission — step 2.2
+  'regional_hokimlik',  // Regional administration — steps 3, 7
+  'kadastr_agency',     // Cadastre agency — steps 4, 6
+  'peoples_council',    // People's council — step 9
 ]);
 
 // Ariza holatlari — PDF dagi 9 bosqichli workflow
 export const applicationStatusEnum = pgEnum('application_status', [
   // 1: DKP filial geometriya yukladi
   'step_1_geometry_uploaded',
-  // 1.1: Reestrdа mavjud → tuman komissiya (unikal raqam + dalolatnoma)
-  'step_1_1_district_commission',
-  // 1.2: Reestrdа yo'q → DKP filial taklif tayyorlamoqda
-  'step_1_2_dkp_filial_proposal',
+  // 1.1: DKP regional branch — approval
+  'step_1_1_dkp_regional',
+  // 1.2: DKP central (republic) — approval
+  'step_1_2_dkp_coordination',
   // 2: Tuman hokimligi (nom berish/o'zgartirish uchun komissiyaga yuboradi)
   'step_2_district_hokimlik',
   // 2.1: Tuman komissiya — taklif + xulosa, viloyat komissiyaga
@@ -41,17 +42,17 @@ export const applicationStatusEnum = pgEnum('application_status', [
   // 9: Xalq deputatlari Kengashi — E-qaror tizimiga
   'step_9_peoples_council',
   'completed', // Yakunlandi (E-qarorga yuborildi)
-  'rejected',  // Rad etildi (qaytarilmas)
+  'rejected', // Rad etildi (qaytarilmas)
 ]);
 
 export const actionTypeEnum = pgEnum('action_type', [
-  'submit',             // Keyingi bosqichga yuborish
-  'approve',            // Tasdiqlash
-  'reject',             // Rad etish
-  'return',             // Qayta ko'rib chiqish uchun qaytarish
-  'attach_document',    // Hujjat biriktirish
+  'submit', // Keyingi bosqichga yuborish
+  'approve', // Tasdiqlash
+  'reject', // Rad etish
+  'return', // Qayta ko'rib chiqish uchun qaytarish
+  'attach_document', // Hujjat biriktirish
   'assign_registry_number', // Unikal raqam biriktirish
-  'confirm_geometry',   // Geometriyani dalolatnoma bilan tasdiqlash
+  'confirm_geometry', // Geometriyani dalolatnoma bilan tasdiqlash
 ]);
 
 export const documentTypeEnum = pgEnum('document_type', [

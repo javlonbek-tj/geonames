@@ -1,9 +1,14 @@
-import { pgTable, serial, varchar, integer, timestamp } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  serial,
+  varchar,
+  integer,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { regions } from './regions';
 
 export const districts = pgTable('districts', {
   id: serial('id').primaryKey(),
-  // O'zbekiston tumanlari SOATO kodi (4 xonali: 0306, 0308...)
   code: varchar('code', { length: 10 }).notNull().unique(),
   nameUz: varchar('name_uz', { length: 100 }).notNull(),
   nameKrill: varchar('name_krill', { length: 100 }),

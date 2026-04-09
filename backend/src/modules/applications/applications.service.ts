@@ -9,12 +9,13 @@ import type { PerformActionInput } from './applications.schema';
 // Har bir rol uchun tegishli holatlar
 const ROLE_STATUSES: Record<string, string[]> = {
   dkp_filial:          ['step_1_geometry_uploaded'],
-  district_commission: ['step_1_1_district_commission', 'step_2_1_district_commission'],
+  dkp_regional:        ['step_1_1_dkp_regional'],
+  dkp_central:         ['step_1_2_dkp_coordination', 'step_5_dkp_central'],
   district_hokimlik:   ['step_2_district_hokimlik', 'step_8_district_hokimlik'],
+  district_commission: ['step_2_1_district_commission'],
   regional_commission: ['step_2_2_regional_commission'],
   regional_hokimlik:   ['step_3_regional_hokimlik', 'step_7_regional_hokimlik'],
   kadastr_agency:      ['step_4_kadastr_agency', 'step_6_kadastr_agency_final'],
-  dkp_central:         ['step_5_dkp_central'],
   peoples_council:     ['step_9_peoples_council'],
 };
 
@@ -80,7 +81,7 @@ export async function getApplications(
     if (!geo) return false;
 
     const isDistrictRole = ['dkp_filial', 'district_commission', 'district_hokimlik'].includes(user.role);
-    const isRegionalRole = ['regional_commission', 'regional_hokimlik'].includes(user.role);
+    const isRegionalRole = ['dkp_regional', 'regional_commission', 'regional_hokimlik'].includes(user.role);
 
     if (isDistrictRole && user.districtId) return geo.districtId === user.districtId;
     if (isRegionalRole && user.regionId) return geo.regionId === user.regionId;
@@ -125,7 +126,7 @@ async function getHistoricalApplications(
     const geo = app.geographicObjects?.[0];
     if (!geo) return false;
     const isDistrictRole = ['dkp_filial', 'district_commission', 'district_hokimlik'].includes(user.role);
-    const isRegionalRole = ['regional_commission', 'regional_hokimlik'].includes(user.role);
+    const isRegionalRole = ['dkp_regional', 'regional_commission', 'regional_hokimlik'].includes(user.role);
     if (isDistrictRole && user.districtId) return geo.districtId === user.districtId;
     if (isRegionalRole && user.regionId) return geo.regionId === user.regionId;
     return true;
@@ -185,7 +186,7 @@ export async function performAction(
   if (!geo) throw new AppError("Arizada geografik ob'yekt topilmadi", 400);
 
   const isDistrictRole = ['dkp_filial', 'district_commission', 'district_hokimlik'].includes(user.role);
-  const isRegionalRole = ['regional_commission', 'regional_hokimlik'].includes(user.role);
+  const isRegionalRole = ['dkp_regional', 'regional_commission', 'regional_hokimlik'].includes(user.role);
 
   if (isDistrictRole && user.districtId && geo.districtId !== user.districtId) {
     throw new AppError("Bu ariza sizning tumaningizga tegishli emas", 403);
@@ -195,19 +196,7 @@ export async function performAction(
   }
 
   const fromStatus = app.currentStatus;
-
-  let toStatus = transition.nextStatus;
-  if (fromStatus === 'step_1_geometry_uploaded') {
-    toStatus = 'step_2_district_hokimlik';
-  }
-
-  if (fromStatus === 'step_2_district_hokimlik') {
-    if (geo.existsInRegistry) {
-      toStatus = 'step_1_1_district_commission';
-    } else {
-      toStatus = 'step_2_1_district_commission';
-    }
-  }
+  const toStatus = transition.nextStatus;
 
   await db.transaction(async (tx) => {
     await tx
@@ -238,23 +227,5 @@ export function getAvailableActionsForUser(
 
   return Object.entries(transitions)
     .filter(([, t]) => t.allowedRole === userRole)
-    .map(([action, t]) => {
-      if (status === 'step_1_geometry_uploaded') {
-        return {
-          action,
-          label: 'GeoJSON yuklandi, tuman hokimligiga yuborish',
-          nextStatus: 'step_2_district_hokimlik',
-        };
-      }
-      if (status === 'step_2_district_hokimlik') {
-        const nextStatus = existsInRegistry
-          ? 'step_1_1_district_commission'
-          : 'step_2_1_district_commission';
-        const label = existsInRegistry
-          ? "Nom tasdiqlandi, tuman komissiyasiga yuborish (kelishish)"
-          : "Nom berildi, tuman komissiyasiga yuborish (to'liq jarayon)";
-        return { action, label, nextStatus };
-      }
-      return { action, label: t.label, nextStatus: t.nextStatus };
-    });
+    .map(([action, t]) => ({ action, label: t.label, nextStatus: t.nextStatus }));
 }

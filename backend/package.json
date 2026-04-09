@@ -11,7 +11,11 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx --env-file=.env src/db/seed.ts"
+    "db:seed": "tsx --env-file=.env src/db/seed.ts",
+    "db:seed:object-types": "tsx --env-file=.env src/db/seeds/object-types.seed.ts",
+    "db:seed:natural-objects": "tsx --env-file=.env src/db/seeds/natural-objects.seed.ts",
+    "db:seed:transport-objects": "tsx --env-file=.env src/db/seeds/transport-objects.seed.ts",
+    "db:seed:andijon": "tsx --env-file=.env src/db/seeds/andijon-registry.seed.ts"
   },
   "keywords": [],
   "author": "",

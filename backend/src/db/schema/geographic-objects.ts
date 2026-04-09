@@ -2,6 +2,7 @@ import {
   pgTable,
   serial,
   varchar,
+  text,
   integer,
   boolean,
   jsonb,
@@ -18,15 +19,13 @@ export const geographicObjects = pgTable('geographic_objects', {
 
   // Bitta ariza ostidagi bir nechta ob'yektdan biri
   applicationId: integer('application_id')
-    .references(() => applications.id)
-    .notNull(),
+    .references(() => applications.id),
 
-  nameUz: varchar('name_uz', { length: 200 }).notNull(),
+  nameUz: varchar('name_uz', { length: 200 }),
   nameKrill: varchar('name_krill', { length: 200 }),
 
-  objectTypeId: integer('object_type_id')
-    .references(() => objectTypes.id)
-    .notNull(),
+  // Tuman hokimligi nom kiritish jarayonida har obyekt uchun alohida to'ldiradi
+  objectTypeId: integer('object_type_id').references(() => objectTypes.id),
 
   regionId: integer('region_id')
     .references(() => regions.id)
@@ -38,6 +37,12 @@ export const geographicObjects = pgTable('geographic_objects', {
   geometry: jsonb('geometry'),
 
   registryNumber: varchar('registry_number', { length: 50 }).unique(),
+
+  // Ixtiyoriy qo'shimcha ma'lumotlar
+  basisDocument: text('basis_document'),           // Yaratilish asosi hujjati
+  affiliation: varchar('affiliation', { length: 200 }), // Bog'liq ob'yekt
+  historicalName: varchar('historical_name', { length: 200 }), // Tarixiy nomi
+  comment: text('comment'),                          // Izoh
 
   existsInRegistry: boolean('exists_in_registry'),
 

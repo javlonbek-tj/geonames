@@ -17,7 +17,6 @@ export const users = pgTable('users', {
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   fullName: varchar('full_name', { length: 200 }),
   role: userRoleEnum('role').notNull(),
-  // Viloyat/tuman darajasidagi xodimlar uchun — qaysi viloyat/tumanga tegishli
   regionId: integer('region_id').references(() => regions.id),
   districtId: integer('district_id').references(() => districts.id),
   isActive: boolean('is_active').default(true).notNull(),

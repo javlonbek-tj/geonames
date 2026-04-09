@@ -18,24 +18,45 @@ type TransitionMap = Record<string, Record<string, Transition>>;
 
 export const WORKFLOW: TransitionMap = {
 
-  // BOSQICH 1: DKP Filial — SHP fayl yuklaydi
-  // nextStatus dinamik: existsInRegistry=true → step_1_1, false → step_2
+  // BOSQICH 1: DKP Filial — GeoJSON yuklaydi → Viloyat DKP kelishishiga
   step_1_geometry_uploaded: {
     submit: {
       allowedRole: 'dkp_filial',
-      nextStatus: '', // performAction da existsInRegistry ga qarab aniqlanadi
+      nextStatus: 'step_1_1_dkp_regional',
       actionType: 'submit',
-      label: "SHP fayl yuklandi, keyingi bosqichga yuborish",
+      label: "GeoJSON yuklandi, Viloyat DKP kelishishiga yuborish",
     },
   },
 
-  // BOSQICH 1.1: Tuman komissiya — reestrdа mavjud, dalolatnoma bilan tasdiqlash → yakunlandi
-  step_1_1_district_commission: {
-    confirm_geometry: {
-      allowedRole: 'district_commission',
-      nextStatus: 'completed',
-      actionType: 'confirm_geometry',
-      label: 'Dalolatnoma bilan tasdiqlash va yakunlash',
+  // STEP 1.1: DKP regional — reviews → DKP central
+  step_1_1_dkp_regional: {
+    submit: {
+      allowedRole: 'dkp_regional',
+      nextStatus: 'step_1_2_dkp_coordination',
+      actionType: 'submit',
+      label: "Ko'rib chiqildi, Respublika DKP kelishishiga yuborish",
+    },
+    return: {
+      allowedRole: 'dkp_regional',
+      nextStatus: 'step_1_geometry_uploaded',
+      actionType: 'return',
+      label: "Qayta ko'rib chiqish uchun DKP filialga qaytarish",
+    },
+  },
+
+  // STEP 1.2: DKP central — approves → district administration
+  step_1_2_dkp_coordination: {
+    submit: {
+      allowedRole: 'dkp_central',
+      nextStatus: 'step_2_district_hokimlik',
+      actionType: 'submit',
+      label: "Kelishildi, tuman hokimligiga yuborish",
+    },
+    return: {
+      allowedRole: 'dkp_central',
+      nextStatus: 'step_1_1_dkp_regional',
+      actionType: 'return',
+      label: "Qayta ko'rib chiqish uchun Viloyat DKP ga qaytarish",
     },
   },
 

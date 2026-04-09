@@ -6,14 +6,19 @@ const router = Router();
 
 router.use(authenticate);
 
-// GET  /api/geographic-objects          — DKP filial o'z ob'yektlari
-// GET  /api/geographic-objects/:id      — Bitta ob'yekt (barcha rollar ko'ra oladi)
-// POST /api/geographic-objects          — Yangi ob'yekt + ariza yaratish (faqat dkp_filial)
-// PATCH /api/geographic-objects/:id/geometry — Geometriyani yangilash (faqat dkp_filial)
-
 router.get('/', controller.getMyObjects);
+router.get('/registry', controller.getRegistry);
 router.get('/:id', controller.getObjectById);
 router.post('/', authorize('dkp_filial'), controller.createGeographicObject);
 router.patch('/:id/geometry', authorize('dkp_filial'), controller.updateGeometry);
+router.patch('/:id', authorize('admin'), controller.updateRegistryObject);
+router.delete('/:id', authorize('admin'), controller.deleteRegistryObject);
+
+// Tuman hokimligi: ariza ob'yektlariga nom va reyestr raqami kiritadi
+router.patch(
+  '/by-application/:applicationId/names',
+  authorize('district_hokimlik'),
+  controller.updateObjectNames,
+);
 
 export default router;

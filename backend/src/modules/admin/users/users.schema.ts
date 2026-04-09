@@ -3,17 +3,19 @@ import { z } from 'zod';
 const roles = [
   'admin',
   'dkp_filial',
+  'dkp_regional',
+  'dkp_central',
   'district_commission',
   'district_hokimlik',
   'regional_commission',
   'regional_hokimlik',
   'kadastr_agency',
-  'dkp_central',
   'peoples_council',
 ] as const;
 
 // Viloyat darajasidagi rollar
 const regionalRoles = [
+  'dkp_regional',
   'regional_commission',
   'regional_hokimlik',
 ] as const;
