@@ -10,6 +10,7 @@ const USER_SELECT = {
   username: users.username,
   fullName: users.fullName,
   role: users.role,
+  position: users.position,
   regionId: users.regionId,
   districtId: users.districtId,
   isActive: users.isActive,
@@ -70,6 +71,7 @@ export async function createUser(input: CreateUserInput) {
       passwordHash,
       fullName: input.fullName,
       role: input.role,
+      position: input.position,
       regionId: input.regionId,
       districtId: input.districtId,
     })

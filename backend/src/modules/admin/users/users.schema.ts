@@ -13,6 +13,22 @@ const roles = [
   'peoples_council',
 ] as const;
 
+const commissionPositions = [
+  'hokim',
+  'hokim_deputy',
+  'economics_head',
+  'construction_head',
+  'poverty_head',
+  'ecology_head',
+  'culture_head',
+  'spirituality_head',
+  'newspaper_head',
+  'dkp_head',
+  'historian',
+  'linguist',
+  'geographer',
+] as const;
+
 // Viloyat darajasidagi rollar
 const regionalRoles = [
   'dkp_regional',
@@ -41,6 +57,7 @@ export const createUserSchema = z
     role: z.enum(roles, { error: "Noto'g'ri rol" }),
     regionId: z.number().int().positive().optional(),
     districtId: z.number().int().positive().optional(),
+    position: z.enum(commissionPositions).optional(),
   })
   .refine(
     (data) => {
@@ -67,6 +84,7 @@ export const updateUserSchema = z
     role: z.enum(roles).optional(),
     regionId: z.number().int().positive().nullable().optional(),
     districtId: z.number().int().positive().nullable().optional(),
+    position: z.enum(commissionPositions).nullable().optional(),
     isActive: z.boolean().optional(),
     isBlocked: z.boolean().optional(),
   })
