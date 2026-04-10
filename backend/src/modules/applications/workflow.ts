@@ -60,23 +60,34 @@ export const WORKFLOW: TransitionMap = {
     },
   },
 
-  // BOSQICH 2: Tuman hokimligi — nom beradi, tuman komissiyasiga yuboradi
+  // BOSQICH 2: Tuman hokimligi — nom beradi, ommaviy muhokamaga yuboradi
   step_2_district_hokimlik: {
+    submit: {
+      allowedRole: 'district_hokimlik',
+      nextStatus: 'step_2_public_discussion',
+      actionType: 'submit',
+      label: 'Nom berildi, ommaviy muhokamaga yuborish (10 kun)',
+    },
+  },
+
+  // BOSQICH 2.0: Ommaviy muhokama — tuman hokimligi muhokama tugagach komissiyaga yuboradi
+  step_2_public_discussion: {
     submit: {
       allowedRole: 'district_hokimlik',
       nextStatus: 'step_2_1_district_commission',
       actionType: 'submit',
-      label: 'Nom berildi, tuman komissiyasiga yuborish',
+      label: 'Ommaviy muhokama tugadi, tuman komissiyasiga yuborish',
     },
   },
 
-  // BOSQICH 2.1: Tuman komissiya — xulosa → viloyat komissiyasiga
+  // BOSQICH 2.1: Tuman komissiya a'zolari kelishadi (alohida /commission endpoint)
+  // Barcha a'zolar kelishgandan keyin tuman hokimligi viloyat komissiyasiga yuboradi
   step_2_1_district_commission: {
     submit: {
-      allowedRole: 'district_commission',
+      allowedRole: 'district_hokimlik',
       nextStatus: 'step_2_2_regional_commission',
       actionType: 'submit',
-      label: 'Xulosa kiritildi, viloyat komissiyasiga yuborish',
+      label: 'Tuman komissiyasi kelishdi, viloyat komissiyasiga yuborish',
     },
   },
 

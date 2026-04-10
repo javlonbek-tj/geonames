@@ -27,16 +27,18 @@ const storage = multer.diskStorage({
   },
 });
 
+const ALLOWED_EXTS = new Set(['.geojson', '.json', '.pdf', '.png', '.jpg', '.jpeg']);
+
 function fileFilter(
   _req: Request,
   file: Express.Multer.File,
   cb: FileFilterCallback,
 ) {
   const ext = path.extname(file.originalname).toLowerCase();
-  if (ext === '.geojson' || ext === '.json') {
+  if (ALLOWED_EXTS.has(ext)) {
     cb(null, true);
   } else {
-    cb(new AppError('Faqat GeoJSON fayllari qabul qilinadi (.geojson yoki .json)', 400));
+    cb(new AppError('Faqat GeoJSON, PDF, PNG, JPG fayllari qabul qilinadi', 400));
   }
 }
 

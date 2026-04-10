@@ -1,6 +1,8 @@
 import { eq, inArray, and, count } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { applications, applicationHistory, geographicObjects } from '../../db/schema';
+import { applications, applicationHistory, geographicObjects, commissionApprovals } from '../../db/schema';
+import { REQUIRED_POSITIONS } from '../commission/commission.service';
+import { createDiscussion } from '../public/public.service';
 import { AppError } from '../../utils/appError';
 import { resolveTransition, getAvailableActions } from './workflow';
 import type { JwtPayload } from '../auth/auth.service';
@@ -11,7 +13,7 @@ const ROLE_STATUSES: Record<string, string[]> = {
   dkp_filial:          ['step_1_geometry_uploaded'],
   dkp_regional:        ['step_1_1_dkp_regional'],
   dkp_central:         ['step_1_2_dkp_coordination', 'step_5_dkp_central'],
-  district_hokimlik:   ['step_2_district_hokimlik', 'step_8_district_hokimlik'],
+  district_hokimlik:   ['step_2_district_hokimlik', 'step_2_public_discussion', 'step_2_1_district_commission', 'step_8_district_hokimlik'],
   district_commission: ['step_2_1_district_commission'],
   regional_commission: ['step_2_2_regional_commission'],
   regional_hokimlik:   ['step_3_regional_hokimlik', 'step_7_regional_hokimlik'],
@@ -181,6 +183,20 @@ export async function performAction(
     throw new AppError(err.message, 403);
   }
 
+  // Tuman komissiyasi bosqichida: barchasi kelishganini tekshirish
+  if (app.currentStatus === 'step_2_1_district_commission') {
+    const approvals = await db.query.commissionApprovals.findMany({
+      where: eq(commissionApprovals.applicationId, id),
+      columns: { position: true, approved: true },
+    });
+    const notAllApproved = REQUIRED_POSITIONS.some(
+      (p) => !approvals.find((a) => a.position === p && a.approved),
+    );
+    if (notAllApproved) {
+      throw new AppError("Tuman komissiyasi barcha a'zolari hali kelishmagan", 400);
+    }
+  }
+
   // Barcha ob'yektlar bir tuman/viloyatda, birinchisini tekshirish yetarli
   const geo = app.geographicObjects?.[0];
   if (!geo) throw new AppError("Arizada geografik ob'yekt topilmadi", 400);
@@ -214,6 +230,11 @@ export async function performAction(
       attachments: input.attachments ?? [],
     });
   });
+
+  // Ommaviy muhokama bosqichiga o'tganda avtomatik muhokama yaratish
+  if (toStatus === 'step_2_public_discussion') {
+    await createDiscussion(id);
+  }
 
   return getApplicationById(id);
 }

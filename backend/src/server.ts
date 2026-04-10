@@ -9,11 +9,14 @@ process.on('uncaughtException', (err: Error) => {
 
 import app from './app';
 import { connectDb } from './db/db';
+import { startBot } from './modules/telegram-bot/bot';
 
 let server: http.Server;
 
 async function start(): Promise<void> {
   await connectDb();
+
+  startBot();
 
   server = app.listen(ENV.PORT, () => {
     console.log(`Server is running on port ${ENV.PORT}`);

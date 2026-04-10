@@ -7,4 +7,7 @@ export * from './geographic-objects';
 export * from './applications';
 export * from './application-history';
 export * from './documents';
+export * from './commission-approvals';
+export * from './citizens';
+export * from './public-discussions';
 export * from './relations';

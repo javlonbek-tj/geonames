@@ -7,6 +7,9 @@ import { geographicObjects } from './geographic-objects';
 import { applications } from './applications';
 import { applicationHistory } from './application-history';
 import { documents } from './documents';
+import { commissionApprovals } from './commission-approvals';
+import { citizens, citizenOtps } from './citizens';
+import { publicDiscussions, publicVotes } from './public-discussions';
 
 export const objectCategoriesRelations = relations(
   objectCategories,
@@ -104,6 +107,11 @@ export const applicationsRelations = relations(
     }),
     history: many(applicationHistory),
     documents: many(documents),
+    commissionApprovals: many(commissionApprovals),
+    publicDiscussion: one(publicDiscussions, {
+      fields: [applications.id],
+      references: [publicDiscussions.applicationId],
+    }),
   })
 );
 
@@ -120,6 +128,43 @@ export const applicationHistoryRelations = relations(
     }),
   })
 );
+
+export const commissionApprovalsRelations = relations(commissionApprovals, ({ one }) => ({
+  application: one(applications, {
+    fields: [commissionApprovals.applicationId],
+    references: [applications.id],
+  }),
+  user: one(users, {
+    fields: [commissionApprovals.userId],
+    references: [users.id],
+  }),
+}));
+
+export const citizensRelations = relations(citizens, ({ many }) => ({
+  otps: many(citizenOtps),
+  votes: many(publicVotes),
+}));
+
+export const citizenOtpsRelations = relations(citizenOtps, () => ({}));
+
+export const publicDiscussionsRelations = relations(publicDiscussions, ({ one, many }) => ({
+  application: one(applications, {
+    fields: [publicDiscussions.applicationId],
+    references: [applications.id],
+  }),
+  votes: many(publicVotes),
+}));
+
+export const publicVotesRelations = relations(publicVotes, ({ one }) => ({
+  discussion: one(publicDiscussions, {
+    fields: [publicVotes.discussionId],
+    references: [publicDiscussions.id],
+  }),
+  citizen: one(citizens, {
+    fields: [publicVotes.citizenId],
+    references: [citizens.id],
+  }),
+}));
 
 export const documentsRelations = relations(documents, ({ one }) => ({
   application: one(applications, {

@@ -9,6 +9,7 @@ import {
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, useResetPassword } from '@/hooks/admin/useUsers';
 import { useRegions, useDistricts, useAllDistricts } from '@/hooks/locations/useLocations';
 import { ROLE_LABELS } from '@/constants';
+import { COMMISSION_POSITION_LABELS } from '@/types/user';
 import type { User, UserRole } from '@/types';
 
 const { Title, Text } = Typography;
@@ -313,6 +314,19 @@ export default function UsersPage() {
                   placeholder='Tuman tanlang'
                   disabled={!selectedRegionId}
                   options={districts.map((d) => ({ value: d.id, label: d.nameUz }))}
+                />
+              </Form.Item>
+            )}
+
+            {selectedRole === 'district_commission' && (
+              <Form.Item
+                label='Lavozim'
+                name='position'
+                rules={[{ required: true, message: 'Lavozim tanlanishi shart' }]}
+              >
+                <Select
+                  placeholder='Lavozim tanlang'
+                  options={Object.entries(COMMISSION_POSITION_LABELS).map(([value, label]) => ({ value, label }))}
                 />
               </Form.Item>
             )}

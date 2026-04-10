@@ -11,6 +11,7 @@ export interface JwtPayload {
   userId: number;
   username: string;
   role: string;
+  position: string | null;
   regionId: number | null;
   districtId: number | null;
   iat?: number;
@@ -62,6 +63,7 @@ export async function login(input: LoginInput) {
     userId: user.id,
     username: user.username,
     role: user.role,
+    position: user.position ?? null,
     regionId: user.regionId,
     districtId: user.districtId,
   };
@@ -83,6 +85,7 @@ export async function login(input: LoginInput) {
       username: user.username,
       fullName: user.fullName,
       role: user.role,
+      position: user.position ?? null,
       regionId: user.regionId,
       districtId: user.districtId,
     },
@@ -114,6 +117,7 @@ export async function refresh(token: string) {
     userId: payload.userId,
     username: payload.username,
     role: payload.role,
+    position: payload.position ?? null,
     regionId: payload.regionId,
     districtId: payload.districtId,
   });

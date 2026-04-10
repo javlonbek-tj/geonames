@@ -6,6 +6,7 @@ export type ApplicationStatus =
   | 'step_1_1_dkp_regional'
   | 'step_1_2_dkp_coordination'
   | 'step_2_district_hokimlik'
+  | 'step_2_public_discussion'
   | 'step_2_1_district_commission'
   | 'step_2_2_regional_commission'
   | 'step_3_regional_hokimlik'

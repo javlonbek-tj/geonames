@@ -20,7 +20,10 @@ import {
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
+  CopyOutlined,
+  CheckOutlined,
 } from '@ant-design/icons';
+import { useState as useLocalState } from 'react';
 import type { TableProps } from 'antd';
 import {
   useRegistry,
@@ -34,6 +37,31 @@ import type { RegistryParams } from '@/api/geographic-objects.api';
 
 const { Title, Text } = Typography;
 const DEFAULT_LIMIT = 10;
+
+function CopyableNumber({ value }: { value: string }) {
+  const [copied, setCopied] = useLocalState(false);
+  const copy = () => {
+    void navigator.clipboard.writeText(value).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+  return (
+    <Tooltip title={copied ? 'Nusxalandi!' : 'Nusxalash'}>
+      <span
+        onClick={copy}
+        className='inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold cursor-pointer select-none transition-colors'
+        style={{
+          background: copied ? '#dcfce7' : '#e8efff',
+          color: copied ? '#166534' : '#1565c0',
+        }}
+      >
+        {value}
+        {copied ? <CheckOutlined style={{ fontSize: 10 }} /> : <CopyOutlined style={{ fontSize: 10 }} />}
+      </span>
+    </Tooltip>
+  );
+}
 
 export default function RegistryPage() {
   const navigate = useNavigate();
@@ -206,6 +234,17 @@ export default function RegistryPage() {
         ),
     },
     {
+      title: 'Reyestr raqami',
+      key: 'registryNumber',
+      width: 160,
+      render: (obj: GeographicObject) =>
+        obj.registryNumber ? (
+          <CopyableNumber value={obj.registryNumber} />
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
+    },
+    {
       title: 'Amallar',
       key: 'actions',
       width: 100,
@@ -251,7 +290,7 @@ export default function RegistryPage() {
           <div className="flex-1 min-w-48">
             <div className="text-xs text-gray-500 mb-1">Qidirish (nomi bo'yicha)</div>
             <Input
-              placeholder="Obyekt nomini kiriting..."
+              placeholder="Nom yoki reyestr raqami bo'yicha..."
               prefix={<SearchOutlined className="text-gray-400" />}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}

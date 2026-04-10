@@ -1,10 +1,11 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Card, Form, Switch, Button, Typography, Upload, Alert, Tag,
 } from 'antd';
 import { InboxOutlined, DeleteOutlined, FileOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { useCreateGeographicObject } from '@/hooks/geographic-objects/useCreateGeographicObject';
+import { useObjectTypes } from '@/hooks/object-types/useObjectTypes';
 import { useAuthStore } from '@/store/authStore';
 import GeoJsonMap from '@/components/map/GeoJsonMap';
 import type { GeoJSON } from '@/types';
@@ -23,7 +24,11 @@ interface ObjectRow {
   errors: string[];
 }
 
-function validateAndExtract(geojson: GeoJSON, existsInRegistry: boolean): ObjectRow[] {
+function validateAndExtract(
+  geojson: GeoJSON,
+  existsInRegistry: boolean,
+  validTypeIds: Set<number>,
+): ObjectRow[] {
   const features: GeoJSON[] =
     geojson.type === 'FeatureCollection' && Array.isArray(geojson.features)
       ? geojson.features
@@ -37,13 +42,20 @@ function validateAndExtract(geojson: GeoJSON, existsInRegistry: boolean): Object
     const nameKrill = (props.name_krill ?? props.nameKrill ?? null) as string | null;
     const registryNumber = (props.registry_number ?? props.registryNumber ?? props.reg_number ?? null) as string | null;
     const rawTypeId = props.object_type_id ?? props.objectTypeId ?? props.type_id ?? props.objectType ?? null;
-    const objectTypeId = rawTypeId != null ? Number(rawTypeId) : null;
+    const objectTypeId = rawTypeId != null && !isNaN(Number(rawTypeId)) ? Number(rawTypeId) : null;
 
     const errors: string[] = [];
     if (existsInRegistry) {
       if (!registryNumber) errors.push("registry_number properties'da topilmadi");
       if (!nameUz) errors.push("name_uz properties'da topilmadi");
-      if (!objectTypeId || isNaN(objectTypeId)) errors.push("object_type_id properties'da topilmadi");
+      if (!objectTypeId) {
+        errors.push("object_type_id properties'da topilmadi");
+      } else if (validTypeIds.size > 0 && !validTypeIds.has(objectTypeId)) {
+        errors.push(`object_type_id=${objectTypeId} bazada topilmadi`);
+      }
+    } else if (objectTypeId && validTypeIds.size > 0 && !validTypeIds.has(objectTypeId)) {
+      // Reyestrda yo'q ob'yektlarda ham noto'g'ri ID bo'lsa xabar ber
+      errors.push(`object_type_id=${objectTypeId} bazada topilmadi`);
     }
 
     return {
@@ -51,7 +63,7 @@ function validateAndExtract(geojson: GeoJSON, existsInRegistry: boolean): Object
       nameUz: nameUz?.toString() ?? null,
       nameKrill: nameKrill?.toString() ?? null,
       registryNumber: registryNumber?.toString() ?? null,
-      objectTypeId: objectTypeId && !isNaN(objectTypeId) ? objectTypeId : null,
+      objectTypeId,
       geometry: rawGeom,
       geometryType: rawGeom?.type ?? "Noma'lum",
       errors,
@@ -74,12 +86,23 @@ export default function CreateGeographicObjectPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const { mutate: create, isPending } = useCreateGeographicObject();
+  const { data: allObjectTypes = [] } = useObjectTypes();
+  const validTypeIds = useMemo(() => new Set(allObjectTypes.map((t) => t.id)), [allObjectTypes]);
 
   const [form] = Form.useForm();
   const [existsInRegistry, setExistsInRegistry] = useState(false);
   const [objects, setObjects] = useState<ObjectRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const lastParsedRef = useRef<{ geojson: GeoJSON; existsInRegistry: boolean } | null>(null);
+
+  // objectTypes yuklanib bo'lganda, yuklangan fayl bor bo'lsa qayta validate qil
+  useEffect(() => {
+    if (validTypeIds.size > 0 && lastParsedRef.current) {
+      const { geojson, existsInRegistry: reg } = lastParsedRef.current;
+      setObjects(validateAndExtract(geojson, reg, validTypeIds));
+    }
+  }, [validTypeIds]);
 
   const handleGeoJsonFile = (file: File) => {
     setParseError(null);
@@ -89,10 +112,12 @@ export default function CreateGeographicObjectPage() {
       try {
         const parsed = JSON.parse(e.target?.result as string) as GeoJSON;
         if (!parsed.type) throw new Error("GeoJSON formati noto'g'ri");
-        setObjects(validateAndExtract(parsed, existsInRegistry));
+        lastParsedRef.current = { geojson: parsed, existsInRegistry };
+        setObjects(validateAndExtract(parsed, existsInRegistry, validTypeIds));
       } catch {
         setParseError("GeoJSON fayl noto'g'ri formatda");
         setObjects([]);
+        lastParsedRef.current = null;
       }
     };
     reader.readAsText(file);
@@ -103,13 +128,19 @@ export default function CreateGeographicObjectPage() {
     setObjects([]);
     setParseError(null);
     setFileName(null);
+    lastParsedRef.current = null;
   };
 
   const handleExistsChange = (val: boolean) => {
     setExistsInRegistry(val);
-    setObjects([]);
-    setParseError(null);
-    setFileName(null);
+    if (lastParsedRef.current) {
+      lastParsedRef.current.existsInRegistry = val;
+      setObjects(validateAndExtract(lastParsedRef.current.geojson, val, validTypeIds));
+    } else {
+      setObjects([]);
+      setParseError(null);
+      setFileName(null);
+    }
   };
 
   const validCount = objects.filter((o) => o.errors.length === 0).length;

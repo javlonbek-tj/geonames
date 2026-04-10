@@ -7,7 +7,7 @@ import {
   timestamp,
   text,
 } from 'drizzle-orm/pg-core';
-import { userRoleEnum } from './enums';
+import { userRoleEnum, commissionPositionEnum } from './enums';
 import { regions } from './regions';
 import { districts } from './districts';
 
@@ -17,6 +17,7 @@ export const users = pgTable('users', {
   passwordHash: varchar('password_hash', { length: 255 }).notNull(),
   fullName: varchar('full_name', { length: 200 }),
   role: userRoleEnum('role').notNull(),
+  position: commissionPositionEnum('position'),   // faqat district_commission uchun
   regionId: integer('region_id').references(() => regions.id),
   districtId: integer('district_id').references(() => districts.id),
   isActive: boolean('is_active').default(true).notNull(),

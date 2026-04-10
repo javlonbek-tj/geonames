@@ -1,4 +1,4 @@
-import { eq, and, count, inArray, ilike, SQL } from 'drizzle-orm';
+import { eq, and, count, inArray, ilike, or, SQL } from 'drizzle-orm';
 import { db } from '../../db/db';
 import {
   geographicObjects,
@@ -61,7 +61,12 @@ export async function getMyObjects(
 
   return {
     data,
-    meta: { total: Number(total), page, limit, totalPages: Math.ceil(Number(total) / limit) },
+    meta: {
+      total: Number(total),
+      page,
+      limit,
+      totalPages: Math.ceil(Number(total) / limit),
+    },
   };
 }
 
@@ -79,9 +84,19 @@ export async function getObjectById(id: number) {
         with: {
           history: {
             with: {
-              performer: { columns: { id: true, username: true, fullName: true, role: true } },
+              performer: {
+                columns: {
+                  id: true,
+                  username: true,
+                  fullName: true,
+                  role: true,
+                },
+              },
             },
-            orderBy: (h: { createdAt: unknown }, { asc }: { asc: (col: unknown) => unknown }) => asc(h.createdAt),
+            orderBy: (
+              h: { createdAt: unknown },
+              { asc }: { asc: (col: unknown) => unknown },
+            ) => asc(h.createdAt),
           },
         },
       },
@@ -99,17 +114,28 @@ export async function createGeographicObjects(
   const [district] = await db
     .select()
     .from(districts)
-    .where(and(eq(districts.id, input.districtId), eq(districts.regionId, input.regionId)));
+    .where(
+      and(
+        eq(districts.id, input.districtId),
+        eq(districts.regionId, input.regionId),
+      ),
+    );
   if (!district) throw new AppError("Tuman yoki viloyat noto'g'ri", 400);
 
   if (input.existsInRegistry) {
     const missingReg = input.objects.some((o) => !o.registryNumber?.trim());
     if (missingReg) {
-      throw new AppError("Reestrdа mavjud ob'yektlar uchun reyestr raqami kiritilishi shart", 400);
+      throw new AppError(
+        "Reestrdа mavjud ob'yektlar uchun reyestr raqami kiritilishi shart",
+        400,
+      );
     }
     const missingType = input.objects.some((o) => !o.objectTypeId);
     if (missingType) {
-      throw new AppError("Reestrdа mavjud ob'yektlar uchun ob'yekt turi (object_type_id) kiritilishi shart", 400);
+      throw new AppError(
+        "Reestrdа mavjud ob'yektlar uchun obyekt turi (object_type_id) kiritilishi shart",
+        400,
+      );
     }
   }
 
@@ -135,7 +161,9 @@ export async function createGeographicObjects(
           districtId: input.districtId,
           geometry: obj.geometry,
           existsInRegistry: input.existsInRegistry,
-          registryNumber: input.existsInRegistry ? (obj.registryNumber ?? null) : null,
+          registryNumber: input.existsInRegistry
+            ? (obj.registryNumber ?? null)
+            : null,
           createdBy: user.userId,
         })),
       )
@@ -170,7 +198,10 @@ export async function updateObjectNames(
   });
 
   if (existing.length !== objectIds.length) {
-    throw new AppError("Bir yoki bir nechta ob'yekt bu arizaga tegishli emas", 400);
+    throw new AppError(
+      "Bir yoki bir nechta ob'yekt bu arizaga tegishli emas",
+      400,
+    );
   }
 
   await db.transaction(async (tx) => {
@@ -201,7 +232,15 @@ export async function getRegistry(query: {
   objectTypeId?: number;
   categoryId?: number;
 }) {
-  const { page, limit, search, regionId, districtId, objectTypeId, categoryId } = query;
+  const {
+    page,
+    limit,
+    search,
+    regionId,
+    districtId,
+    objectTypeId,
+    categoryId,
+  } = query;
   const offset = (page - 1) * limit;
 
   const conditions: SQL[] = [];
@@ -221,7 +260,12 @@ export async function getRegistry(query: {
     }
   }
   if (search) {
-    conditions.push(ilike(geographicObjects.nameUz, `%${search}%`));
+    conditions.push(
+      or(
+        ilike(geographicObjects.nameUz, `%${search}%`),
+        ilike(geographicObjects.registryNumber, `%${search}%`),
+      )!,
+    );
   }
 
   const where = conditions.length > 0 ? and(...conditions) : undefined;
@@ -243,7 +287,12 @@ export async function getRegistry(query: {
 
   return {
     data,
-    meta: { total: Number(total), page, limit, totalPages: Math.ceil(Number(total) / limit) },
+    meta: {
+      total: Number(total),
+      page,
+      limit,
+      totalPages: Math.ceil(Number(total) / limit),
+    },
   };
 }
 
@@ -284,7 +333,10 @@ export async function updateGeometry(
   });
   if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
   if (obj.createdBy !== user.userId) {
-    throw new AppError("Siz faqat o'z ob'yektlaringizni tahrirlashingiz mumkin", 403);
+    throw new AppError(
+      "Siz faqat o'z ob'yektlaringizni tahrirlashingiz mumkin",
+      403,
+    );
   }
 
   const [updated] = await db

@@ -1,19 +1,66 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import {
-  Card, Descriptions, Tag, Typography, Button, Timeline,
-  Modal, Input, Select, Spin, Empty, Popconfirm, Upload, Space, Table, Alert,
+  Card,
+  Descriptions,
+  Tag,
+  Typography,
+  Button,
+  Timeline,
+  Modal,
+  Input,
+  Select,
+  Spin,
+  Empty,
+  Popconfirm,
+  Upload,
+  Space,
+  Table,
+  Alert,
 } from 'antd';
 import GeoJsonMap from '@/components/map/GeoJsonMap';
 import {
-  ArrowLeftOutlined, UploadOutlined, DeleteOutlined, FileOutlined, SaveOutlined, DownloadOutlined, ExpandOutlined,
+  ArrowLeftOutlined,
+  UploadOutlined,
+  DeleteOutlined,
+  FileOutlined,
+  SaveOutlined,
+  DownloadOutlined,
+  ExpandOutlined,
+  FilePdfOutlined,
+  FileImageOutlined,
 } from '@ant-design/icons';
-import { useApplication, useAvailableActions, usePerformAction } from '@/hooks/applications/useApplication';
-import { useDocuments, useUploadDocument, useDeleteDocument } from '@/hooks/uploads/useDocuments';
+import {
+  useApplication,
+  useAvailableActions,
+  usePerformAction,
+} from '@/hooks/applications/useApplication';
+import {
+  useCommissionApprovals,
+  useApproveAsCommission,
+  useRejectCommission,
+  useRevokeCommissionApproval,
+} from '@/hooks/commission/useCommission';
+import { useDiscussionResults } from '@/hooks/public/usePublicDiscussion';
+import {
+  useDocuments,
+  useUploadDocument,
+  useDeleteDocument,
+} from '@/hooks/uploads/useDocuments';
 import { useUpdateObjectNames } from '@/hooks/geographic-objects/useUpdateObjectNames';
 import { useObjectTypes } from '@/hooks/object-types/useObjectTypes';
 import { useAuthStore } from '@/store/authStore';
-import { STATUS_LABELS, STATUS_COLORS, ROLE_LABELS, ACTION_LABELS, ACTION_COLORS } from '@/constants';
+import {
+  STATUS_LABELS,
+  STATUS_COLORS,
+  ROLE_LABELS,
+  ACTION_LABELS,
+  ACTION_COLORS,
+} from '@/constants';
+import {
+  COMMISSION_POSITION_LABELS,
+  type CommissionPosition,
+} from '@/types/user';
 import { latinToKrill } from '@/lib/transliterate';
 import type { ApplicationStatus, GeographicObject, GeoJSON } from '@/types';
 
@@ -56,18 +103,59 @@ export default function ApplicationDetailPage() {
   const { data: app, isLoading } = useApplication(appId);
   const { data: actions = [] } = useAvailableActions(appId);
   const { data: documents = [] } = useDocuments(appId);
-  const { mutate: performAction, isPending: isActing } = usePerformAction(appId);
-  const { mutate: uploadDoc, isPending: isUploading } = useUploadDocument(appId);
+  const { mutate: performAction, isPending: isActing } =
+    usePerformAction(appId);
+  const { mutate: uploadDoc, isPending: isUploading } =
+    useUploadDocument(appId);
   const { mutate: deleteDoc } = useDeleteDocument(appId);
-  const { mutate: saveNames, isPending: isSavingNames } = useUpdateObjectNames(appId);
+  const { mutate: saveNames, isPending: isSavingNames } =
+    useUpdateObjectNames(appId);
   const { data: allObjectTypes = [] } = useObjectTypes();
+  const isCommissionStep =
+    app?.currentStatus === 'step_2_1_district_commission';
+  const isDiscussionStep = app?.currentStatus === 'step_2_public_discussion';
+  const hasDiscussion =
+    isDiscussionStep ||
+    (app &&
+      [
+        'step_2_1_district_commission',
+        'step_2_2_regional_commission',
+        'step_3_regional_hokimlik',
+        'step_4_kadastr_agency',
+        'step_5_dkp_central',
+        'step_6_kadastr_agency_final',
+        'step_7_regional_hokimlik',
+        'step_8_district_hokimlik',
+        'step_9_peoples_council',
+        'completed',
+      ].includes(app.currentStatus));
+  const { data: commissionApprovals = [] } = useCommissionApprovals(
+    isCommissionStep ? appId : 0,
+  );
+  const { data: discussionResults } = useDiscussionResults(
+    appId,
+    !!hasDiscussion,
+  );
+  const { mutate: approveAsCommission, isPending: isApproving } =
+    useApproveAsCommission(appId);
+  const { mutate: rejectCommission, isPending: isRejecting } =
+    useRejectCommission(appId);
+  const { mutate: revokeApproval, isPending: isRevoking } =
+    useRevokeCommissionApproval(appId);
+  const [rejectModal, setRejectModal] = useState(false);
+  const [rejectComment, setRejectComment] = useState('');
 
-  const [modal, setModal] = useState<{ action: string; label: string } | null>(null);
+  const [modal, setModal] = useState<{ action: string; label: string } | null>(
+    null,
+  );
   const [comment, setComment] = useState('');
   const [activeGeoIdx, setActiveGeoIdx] = useState<number | null>(null);
   const [mapFullscreen, setMapFullscreen] = useState(false);
   const [nameEdits, setNameEdits] = useState<
-    Record<number, { nameUz: string; nameKrill: string; objectTypeId: number | null }>
+    Record<
+      number,
+      { nameUz: string; nameKrill: string; objectTypeId: number | null }
+    >
   >({});
   // Track which krill fields were manually edited (don't auto-overwrite)
   const [krillManual, setKrillManual] = useState<Record<number, boolean>>({});
@@ -76,24 +164,36 @@ export default function ApplicationDetailPage() {
     if (!modal) return;
     performAction(
       { action: modal.action, comment: comment.trim() || undefined },
-      { onSuccess: () => { setModal(null); setComment(''); } },
+      {
+        onSuccess: () => {
+          setModal(null);
+          setComment('');
+        },
+      },
     );
   };
 
-  if (isLoading) {
-    return <div className='flex items-center justify-center h-64'><Spin size='large' /></div>;
-  }
-  if (!app) return <Empty description='Ariza topilmadi' />;
-
-  const geoObjects = app.geographicObjects ?? [];
-  const firstGeo = geoObjects[0];
-  const mapGeojson = useMemo(() => buildFeatureCollection(geoObjects), [geoObjects]);
-
-  // nameEdits o'zgarganda table rows ham yangilansin (Ant Design Table rows ni re-render qilishi uchun)
+  // useMemo hooklar har doim (early return dan OLDIN) chaqirilishi kerak
+  const geoObjects = app?.geographicObjects ?? [];
+  const mapGeojson = useMemo(
+    () => buildFeatureCollection(geoObjects),
+    [geoObjects],
+  );
   const tableData = useMemo(
     () => geoObjects.map((o) => ({ ...o, _edit: nameEdits[o.id] ?? null })),
     [geoObjects, nameEdits],
   );
+
+  if (isLoading) {
+    return (
+      <div className='flex items-center justify-center h-64'>
+        <Spin size='large' />
+      </div>
+    );
+  }
+  if (!app) return <Empty description='Ariza topilmadi' />;
+
+  const firstGeo = geoObjects[0];
   const existsInRegistry = firstGeo?.existsInRegistry ?? false;
 
   const getEdit = (geo: GeographicObject) =>
@@ -112,7 +212,11 @@ export default function ApplicationDetailPage() {
     .filter((o) => o.existsInRegistry === false)
     .every((o) => {
       const edit = getEdit(o);
-      return edit.nameUz.trim().length > 0 && edit.nameKrill.trim().length > 0 && edit.objectTypeId != null;
+      return (
+        edit.nameUz.trim().length > 0 &&
+        edit.nameKrill.trim().length > 0 &&
+        edit.objectTypeId != null
+      );
     });
   const hasUnsavedEdits = Object.keys(nameEdits).length > 0;
   const actionsBlocked = canEnterNames && (!allNamed || hasUnsavedEdits);
@@ -138,8 +242,14 @@ export default function ApplicationDetailPage() {
         },
         geometry: extractRawGeometry(o.geometry as GeoJSON),
       }));
-    const data = JSON.stringify({ type: 'FeatureCollection', features }, null, 2);
-    const url = URL.createObjectURL(new Blob([data], { type: 'application/geo+json' }));
+    const data = JSON.stringify(
+      { type: 'FeatureCollection', features },
+      null,
+      2,
+    );
+    const url = URL.createObjectURL(
+      new Blob([data], { type: 'application/geo+json' }),
+    );
     const a = document.createElement('a');
     a.href = url;
     a.download = `${app.applicationNumber}.geojson`;
@@ -172,7 +282,9 @@ export default function ApplicationDetailPage() {
         nameKrill: geo.nameKrill ?? '',
         objectTypeId: geo.objectTypeId ?? null,
       };
-      const nameKrill = krillManual[geo.id] ? current.nameKrill : latinToKrill(value);
+      const nameKrill = krillManual[geo.id]
+        ? current.nameKrill
+        : latinToKrill(value);
       return { ...prev, [geo.id]: { ...current, nameUz: value, nameKrill } };
     });
   };
@@ -213,25 +325,33 @@ export default function ApplicationDetailPage() {
             />
           );
         }
-        return geo.nameUz ? <Text>{geo.nameUz}</Text> : <Text type='secondary'>—</Text>;
+        return geo.nameUz ? (
+          <Text>{geo.nameUz}</Text>
+        ) : (
+          <Text type='secondary'>Nomsiz</Text>
+        );
       },
     },
     // Krill ustuni faqat district_hokimlik tahrirlash rejimida
-    ...(canEnterNames ? [{
-      title: 'Nomi (kirill)',
-      key: 'nameKrill',
-      render: (geo: GeographicObject) => (
-        <Input
-          size='small'
-          value={getEdit(geo).nameKrill}
-          placeholder='Kirill (avto)'
-          status={!getEdit(geo).nameKrill.trim() ? 'error' : undefined}
-          onChange={(e) => updateNameKrill(geo, e.target.value)}
-        />
-      ),
-    }] : []),
+    ...(canEnterNames
+      ? [
+          {
+            title: 'Nomi (kirill)',
+            key: 'nameKrill',
+            render: (geo: GeographicObject) => (
+              <Input
+                size='small'
+                value={getEdit(geo).nameKrill}
+                placeholder='Kirill (avto)'
+                status={!getEdit(geo).nameKrill.trim() ? 'error' : undefined}
+                onChange={(e) => updateNameKrill(geo, e.target.value)}
+              />
+            ),
+          },
+        ]
+      : []),
     {
-      title: "Ob'yekt turi",
+      title: 'Obyekt turi',
       key: 'objectTypeId',
       render: (geo: GeographicObject) => {
         if (canEnterNames) {
@@ -242,7 +362,10 @@ export default function ApplicationDetailPage() {
               placeholder='Tur tanlang'
               value={getEdit(geo).objectTypeId ?? undefined}
               status={getEdit(geo).objectTypeId == null ? 'error' : undefined}
-              options={allObjectTypes.map((t) => ({ value: t.id, label: t.nameUz }))}
+              options={allObjectTypes.map((t) => ({
+                value: t.id,
+                label: t.nameUz,
+              }))}
               showSearch
               filterOption={(input, opt) =>
                 (opt?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -256,9 +379,11 @@ export default function ApplicationDetailPage() {
             />
           );
         }
-        return geo.objectType?.nameUz
-          ? <Text>{geo.objectType.nameUz}</Text>
-          : <Text type='secondary'>—</Text>;
+        return geo.objectType?.nameUz ? (
+          <Text>{geo.objectType.nameUz}</Text>
+        ) : (
+          <Text type='secondary'>—</Text>
+        );
       },
     },
     {
@@ -267,7 +392,9 @@ export default function ApplicationDetailPage() {
       key: 'existsInRegistry',
       width: 90,
       render: (v: boolean | null) =>
-        v == null ? '—' : (
+        v == null ? (
+          '—'
+        ) : (
           <Tag color={v ? 'green' : 'orange'}>{v ? 'Mavjud' : 'Yangi'}</Tag>
         ),
     },
@@ -275,37 +402,48 @@ export default function ApplicationDetailPage() {
 
   return (
     <div className='flex flex-col gap-4'>
-
       {/* Header */}
       <div className='flex items-center gap-3'>
-        <Button type='text' icon={<ArrowLeftOutlined />} onClick={() => void navigate('/applications')} />
-        <Title level={4} className='m-0'>{app.applicationNumber}</Title>
+        <Button
+          type='text'
+          icon={<ArrowLeftOutlined />}
+          onClick={() => void navigate('/applications')}
+        />
+        <Title level={4} className='m-0'>
+          {app.applicationNumber}
+        </Title>
         <Tag color={STATUS_COLORS[app.currentStatus as ApplicationStatus]}>
           {STATUS_LABELS[app.currentStatus as ApplicationStatus]}
         </Tag>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-4'>
-
         {/* Left column */}
         <div className='lg:col-span-2 flex flex-col gap-4'>
-
           {/* Ariza ma'lumotlari — 2 ustun: chap va o'ng */}
           <Card title="Ariza ma'lumotlari" size='small'>
             <Descriptions column={2} size='small'>
-              <Descriptions.Item label='Ariza raqami'>{app.applicationNumber}</Descriptions.Item>
+              <Descriptions.Item label='Ariza raqami'>
+                {app.applicationNumber}
+              </Descriptions.Item>
               <Descriptions.Item label='Kategoriya'>
                 {firstGeo?.objectType?.category?.nameUz ?? '—'}
               </Descriptions.Item>
               <Descriptions.Item label='Yaratuvchi'>
                 {app.creator?.fullName ?? app.creator?.username ?? '—'}
               </Descriptions.Item>
-              <Descriptions.Item label="Ob'yekt turi">
+              <Descriptions.Item label='Obyekt turi'>
                 {firstGeo?.objectType?.nameUz ?? '—'}
               </Descriptions.Item>
-              <Descriptions.Item label='Viloyat'>{firstGeo?.region?.nameUz ?? '—'}</Descriptions.Item>
-              <Descriptions.Item label="Ob'yektlar soni">{geoObjects.length} ta</Descriptions.Item>
-              <Descriptions.Item label='Tuman'>{firstGeo?.district?.nameUz ?? '—'}</Descriptions.Item>
+              <Descriptions.Item label='Viloyat'>
+                {firstGeo?.region?.nameUz ?? '—'}
+              </Descriptions.Item>
+              <Descriptions.Item label="Ob'yektlar soni">
+                {geoObjects.length} ta
+              </Descriptions.Item>
+              <Descriptions.Item label='Tuman'>
+                {firstGeo?.district?.nameUz ?? '—'}
+              </Descriptions.Item>
               <Descriptions.Item label='Yaratilgan'>
                 {new Date(app.createdAt).toLocaleDateString('uz-UZ')}
               </Descriptions.Item>
@@ -345,8 +483,14 @@ export default function ApplicationDetailPage() {
               size='small'
               rowKey='id'
               locale={{ emptyText: "Ob'yektlar mavjud emas" }}
-              scroll={existsInRegistry === false && !canEnterNames ? undefined : { x: 600 }}
-              rowClassName={(_, i) => i === activeGeoIdx ? 'geo-row-active' : ''}
+              scroll={
+                existsInRegistry === false && !canEnterNames
+                  ? undefined
+                  : { x: 600 }
+              }
+              rowClassName={(_, i) =>
+                i === activeGeoIdx ? 'geo-row-active' : ''
+              }
               onRow={(_, i) => ({
                 onMouseEnter: () => setActiveGeoIdx(i ?? null),
                 onMouseLeave: () => setActiveGeoIdx(null),
@@ -364,11 +508,19 @@ export default function ApplicationDetailPage() {
               extra={
                 <Space size={8}>
                   {canDownloadGeoJson && (
-                    <Button size='small' icon={<DownloadOutlined />} onClick={handleDownloadGeoJson}>
+                    <Button
+                      size='small'
+                      icon={<DownloadOutlined />}
+                      onClick={handleDownloadGeoJson}
+                    >
                       GeoJSON yuklab olish
                     </Button>
                   )}
-                  <Button size='small' icon={<ExpandOutlined />} onClick={() => setMapFullscreen(true)} />
+                  <Button
+                    size='small'
+                    icon={<ExpandOutlined />}
+                    onClick={() => setMapFullscreen(true)}
+                  />
                 </Space>
               }
             >
@@ -390,14 +542,20 @@ export default function ApplicationDetailPage() {
                     : STATUS_LABELS[h.toStatus as ApplicationStatus];
                   return {
                     key: h.id,
-                    color: h.actionType === 'approve' ? 'green'
-                      : h.actionType === 'return' || h.actionType === 'reject' ? 'red'
-                      : 'blue',
+                    color:
+                      h.actionType === 'approve'
+                        ? 'green'
+                        : h.actionType === 'return' || h.actionType === 'reject'
+                          ? 'red'
+                          : 'blue',
                     children: (
                       <div className='flex flex-col gap-0.5'>
                         <div className='flex items-center gap-2 flex-wrap'>
                           <Text strong>{statusLabel}</Text>
-                          <Tag color={ACTION_COLORS[h.actionType]} className='m-0'>
+                          <Tag
+                            color={ACTION_COLORS[h.actionType]}
+                            className='m-0'
+                          >
                             {ACTION_LABELS[h.actionType] ?? h.actionType}
                           </Tag>
                           <Text type='secondary' className='text-xs'>
@@ -406,23 +564,249 @@ export default function ApplicationDetailPage() {
                         </div>
                         <Text type='secondary' className='text-xs'>
                           {h.performer?.fullName ?? h.performer?.username}
-                          {h.performer?.role ? ` · ${ROLE_LABELS[h.performer.role as keyof typeof ROLE_LABELS]}` : ''}
+                          {h.performer?.role
+                            ? ` · ${ROLE_LABELS[h.performer.role as keyof typeof ROLE_LABELS]}`
+                            : ''}
                         </Text>
-                        {h.comment && <Text className='text-sm'>{h.comment}</Text>}
+                        {h.comment && (
+                          <Text className='text-sm'>{h.comment}</Text>
+                        )}
                       </div>
                     ),
                   };
                 })}
               />
             ) : (
-              <Empty description='Tarix mavjud emas' image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty
+                description='Tarix mavjud emas'
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
             )}
           </Card>
-
         </div>
 
         {/* Right column */}
         <div className='flex flex-col gap-4'>
+          {/* Ommaviy muhokama natijalari */}
+          {discussionResults && (
+            <Card title='Ommaviy muhokama natijalari' size='small'>
+              <div className='flex flex-col gap-2'>
+                <div className='flex items-center justify-between text-sm'>
+                  <Text type='secondary'>Muhokama tugash sanasi</Text>
+                  <Text>
+                    {new Date(discussionResults.endsAt).toLocaleDateString(
+                      'uz-UZ',
+                    )}
+                  </Text>
+                </div>
+                <div className='flex items-center justify-between text-sm'>
+                  <Text type='secondary'>Jami ovozlar</Text>
+                  <Text strong>{discussionResults.total}</Text>
+                </div>
+                <div className='flex items-center justify-between text-sm'>
+                  <Tag color='green'>
+                    Qo'llayman: {discussionResults.supportCount}
+                  </Tag>
+                  <Tag color='red'>
+                    Qo'llamayman: {discussionResults.opposeCount}
+                  </Tag>
+                </div>
+                {isDiscussionStep && (
+                  <Alert
+                    type='info'
+                    showIcon
+                    className='mt-1'
+                    message={`Muhokama davom etmoqda. ${Math.max(0, Math.ceil((new Date(discussionResults.endsAt).getTime() - Date.now()) / 86400000))} kun qoldi.`}
+                  />
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* Tuman komissiyasi kelishuv paneli */}
+          {isCommissionStep &&
+            (() => {
+              const myApproval =
+                user?.role === 'district_commission' && user.position
+                  ? commissionApprovals.find(
+                      (a) => a.position === user.position,
+                    )
+                  : null;
+              const approvedCount = commissionApprovals.filter(
+                (a) => a.approved,
+              ).length;
+              const total = Object.keys(COMMISSION_POSITION_LABELS).length;
+              const canRevoke = !!myApproval; // step allaqachon tekshirilgan (isCommissionStep)
+
+              return (
+                <Card title='Tuman komissiyasi kelishuvi' size='small'>
+                  {user?.role === 'district_commission' && !user.position && (
+                    <Alert
+                      type='warning'
+                      showIcon
+                      className='mb-3'
+                      message="Sizning lavozimingiz belgilanmagan. Administrator bilan bog'laning."
+                    />
+                  )}
+
+                  {/* Faqat district_commission uchun amal tugmalari */}
+                  {user?.role === 'district_commission' && user.position && (
+                    <div className='mb-3 p-2 bg-gray-50 rounded flex items-center gap-2 flex-wrap'>
+                      <Text className='text-sm flex-1'>
+                        <strong>
+                          {
+                            COMMISSION_POSITION_LABELS[
+                              user.position as CommissionPosition
+                            ]
+                          }
+                        </strong>
+                        {' — '}
+                        {!myApproval && (
+                          <span className='text-gray-400'>
+                            Qaror kutilmoqda
+                          </span>
+                        )}
+                        {myApproval?.approved && (
+                          <span className='text-green-600'>Kelishildi ✓</span>
+                        )}
+                        {myApproval && !myApproval.approved && (
+                          <span className='text-red-500'>Rad etildi</span>
+                        )}
+                      </Text>
+                      {!myApproval && (
+                        <Space size={6}>
+                          <Button
+                            type='primary'
+                            size='small'
+                            loading={isApproving}
+                            onClick={() => approveAsCommission()}
+                          >
+                            Kelishdim
+                          </Button>
+                          <Button
+                            danger
+                            size='small'
+                            onClick={() => {
+                              setRejectComment('');
+                              setRejectModal(true);
+                            }}
+                          >
+                            Rad etish
+                          </Button>
+                        </Space>
+                      )}
+                      {canRevoke && (
+                        <Button
+                          size='small'
+                          loading={isRevoking}
+                          onClick={() => revokeApproval()}
+                        >
+                          Kelishuvni bekor qilish
+                        </Button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Ro'yxat */}
+                  <div className='flex flex-col'>
+                    {(
+                      Object.keys(
+                        COMMISSION_POSITION_LABELS,
+                      ) as CommissionPosition[]
+                    ).map((pos) => {
+                      const approval = commissionApprovals.find(
+                        (a) => a.position === pos,
+                      );
+                      return (
+                        <div
+                          key={pos}
+                          className='flex items-start justify-between py-1.5 border-b border-gray-100 last:border-0 gap-2'
+                        >
+                          <Space size={6} align='start'>
+                            <span
+                              className={`inline-block w-2 h-2 rounded-full mt-1.5 shrink-0 ${
+                                !approval
+                                  ? 'bg-gray-300'
+                                  : approval.approved
+                                    ? 'bg-green-500'
+                                    : 'bg-red-400'
+                              }`}
+                            />
+                            <div>
+                              <Text className='text-sm'>
+                                {COMMISSION_POSITION_LABELS[pos]}
+                              </Text>
+                              {approval &&
+                                !approval.approved &&
+                                approval.comment && (
+                                  <Text
+                                    type='secondary'
+                                    className='text-xs block italic'
+                                  >
+                                    "{approval.comment}"
+                                  </Text>
+                                )}
+                            </div>
+                          </Space>
+                          {approval && (
+                            <Text type='secondary' className='text-xs shrink-0'>
+                              {approval.user.fullName ?? approval.user.username}
+                              {' · '}
+                              {new Date(approval.createdAt).toLocaleDateString(
+                                'uz-UZ',
+                              )}
+                            </Text>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className='mt-2 pt-2 border-t border-gray-100 flex items-center justify-between'>
+                    <Text type='secondary' className='text-xs'>
+                      {approvedCount} / {total} ta kelishdi
+                    </Text>
+                    {approvedCount === total && (
+                      <Tag color='green'>Barchasi kelishdi</Tag>
+                    )}
+                  </div>
+                </Card>
+              );
+            })()}
+
+          {/* Rad etish modal */}
+          <Modal
+            open={rejectModal}
+            title='Rad etish sababi'
+            okText='Rad etish'
+            okButtonProps={{ danger: true, loading: isRejecting }}
+            cancelText='Bekor qilish'
+            onCancel={() => setRejectModal(false)}
+            onOk={() => {
+              if (!rejectComment.trim()) return;
+              rejectCommission(rejectComment, {
+                onSuccess: () => {
+                  setRejectModal(false);
+                  setRejectComment('');
+                },
+              });
+            }}
+            centered
+          >
+            <TextArea
+              rows={3}
+              placeholder='Rad etish sababini kiriting (majburiy)...'
+              value={rejectComment}
+              onChange={(e) => setRejectComment(e.target.value)}
+              status={!rejectComment.trim() ? 'error' : undefined}
+              className='mt-3'
+            />
+            {!rejectComment.trim() && (
+              <Text type='danger' className='text-xs mt-1 block'>
+                Sabab kiritilishi shart
+              </Text>
+            )}
+          </Modal>
 
           {actions.length > 0 && (
             <Card title='Harakatlar' size='small'>
@@ -446,7 +830,9 @@ export default function ApplicationDetailPage() {
                     danger={a.action === 'return'}
                     block
                     disabled={actionsBlocked}
-                    onClick={() => setModal({ action: a.action, label: a.label })}
+                    onClick={() =>
+                      setModal({ action: a.action, label: a.label })
+                    }
                   >
                     {a.label}
                   </Button>
@@ -462,9 +848,17 @@ export default function ApplicationDetailPage() {
               actions.length > 0 && (
                 <Upload
                   showUploadList={false}
-                  beforeUpload={(file) => { uploadDoc({ file }); return false; }}
+                  accept='.pdf,.png,.jpg,.jpeg'
+                  beforeUpload={(file) => {
+                    uploadDoc({ file });
+                    return false;
+                  }}
                 >
-                  <Button size='small' icon={<UploadOutlined />} loading={isUploading}>
+                  <Button
+                    size='small'
+                    icon={<UploadOutlined />}
+                    loading={isUploading}
+                  >
                     Yuklash
                   </Button>
                 </Upload>
@@ -473,30 +867,61 @@ export default function ApplicationDetailPage() {
           >
             {documents.length > 0 ? (
               <div className='flex flex-col gap-2'>
-                {documents.map((doc) => (
-                  <div key={doc.id} className='flex items-center justify-between gap-2'>
-                    <Space size={4} className='min-w-0'>
-                      <FileOutlined className='text-blue-500 shrink-0' />
-                      <Text ellipsis className='text-sm max-w-40' title={doc.originalName}>
-                        {doc.originalName}
-                      </Text>
-                    </Space>
-                    <Popconfirm
-                      title="O'chirilsinmi?"
-                      onConfirm={() => deleteDoc(doc.id)}
-                      okText='Ha'
-                      cancelText="Yo'q"
+                {documents.map((doc) => {
+                  const ext =
+                    doc.originalName.split('.').pop()?.toLowerCase() ?? '';
+                  const isPdf = ext === 'pdf';
+                  const isImage = ['png', 'jpg', 'jpeg'].includes(ext);
+                  const icon = isPdf ? (
+                    <FilePdfOutlined className='text-red-500 shrink-0' />
+                  ) : isImage ? (
+                    <FileImageOutlined className='text-green-600 shrink-0' />
+                  ) : (
+                    <FileOutlined className='text-blue-500 shrink-0' />
+                  );
+                  return (
+                    <div
+                      key={doc.id}
+                      className='flex items-center justify-between gap-2'
                     >
-                      <Button type='text' danger size='small' icon={<DeleteOutlined />} />
-                    </Popconfirm>
-                  </div>
-                ))}
+                      <Space size={4} className='min-w-0'>
+                        {icon}
+                        <a
+                          href={`${import.meta.env.VITE_API_URL?.replace('/api', '') ?? ''}${doc.filePath}`}
+                          target='_blank'
+                          rel='noreferrer'
+                          className='text-sm truncate max-w-44'
+                          title={doc.originalName}
+                        >
+                          {doc.originalName}
+                        </a>
+                      </Space>
+                      {actions.length > 0 && (
+                        <Popconfirm
+                          title="O'chirilsinmi?"
+                          onConfirm={() => deleteDoc(doc.id)}
+                          okText='Ha'
+                          cancelText="Yo'q"
+                        >
+                          <Button
+                            type='text'
+                            danger
+                            size='small'
+                            icon={<DeleteOutlined />}
+                          />
+                        </Popconfirm>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
-              <Empty description='Hujjat yuklanmagan' image={Empty.PRESENTED_IMAGE_SIMPLE} />
+              <Empty
+                description='Hujjat yuklanmagan'
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+              />
             )}
           </Card>
-
         </div>
       </div>
 
@@ -511,7 +936,11 @@ export default function ApplicationDetailPage() {
           styles={{ body: { padding: 0, height: 'calc(95vh - 56px)' } }}
           title="Xaritada ko'rish"
         >
-          <GeoJsonMap geojson={mapGeojson} height='100%' highlightedIndex={activeGeoIdx} />
+          <GeoJsonMap
+            geojson={mapGeojson}
+            height='100%'
+            highlightedIndex={activeGeoIdx}
+          />
         </Modal>
       )}
 
@@ -519,7 +948,10 @@ export default function ApplicationDetailPage() {
       <Modal
         open={!!modal}
         title={modal?.label}
-        onCancel={() => { setModal(null); setComment(''); }}
+        onCancel={() => {
+          setModal(null);
+          setComment('');
+        }}
         onOk={handleAction}
         confirmLoading={isActing}
         okText='Tasdiqlash'
@@ -535,7 +967,6 @@ export default function ApplicationDetailPage() {
           />
         </div>
       </Modal>
-
     </div>
   );
 }

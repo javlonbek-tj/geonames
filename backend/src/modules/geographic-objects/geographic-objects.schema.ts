@@ -40,7 +40,7 @@ export const updateObjectNamesSchema = z.object({
         id: z.number().int().positive(),
         nameUz: z.string().min(1, 'Nomi kiritilishi shart').max(200),
         nameKrill: z.string().max(200).optional(),
-        objectTypeId: z.number().int().positive("Ob'yekt turi tanlanishi shart"),
+        objectTypeId: z.number().int().positive('Obyekt turi tanlanishi shart'),
       }),
     )
     .min(1),
@@ -63,8 +63,12 @@ export const updateRegistryObjectSchema = z.object({
   comment: z.string().optional().nullable(),
 });
 
-export type CreateGeographicObjectInput = z.infer<typeof createGeographicObjectSchema>;
+export type CreateGeographicObjectInput = z.infer<
+  typeof createGeographicObjectSchema
+>;
 export type UpdateObjectNamesInput = z.infer<typeof updateObjectNamesSchema>;
 export type ObjectItem = z.infer<typeof objectItemSchema>;
 export type UpdateGeometryInput = z.infer<typeof updateGeometrySchema>;
-export type UpdateRegistryObjectInput = z.infer<typeof updateRegistryObjectSchema>;
+export type UpdateRegistryObjectInput = z.infer<
+  typeof updateRegistryObjectSchema
+>;

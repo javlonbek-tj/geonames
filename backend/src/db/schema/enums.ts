@@ -23,6 +23,8 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'step_1_2_dkp_coordination',
   // 2: Tuman hokimligi (nom berish/o'zgartirish uchun komissiyaga yuboradi)
   'step_2_district_hokimlik',
+  // 2.0: Ommaviy muhokama — 10 kun fuqarolar ovoz beradi
+  'step_2_public_discussion',
   // 2.1: Tuman komissiya — taklif + xulosa, viloyat komissiyaga
   'step_2_1_district_commission',
   // 2.2: Viloyat komissiya — xulosa, viloyat hokimligiga
@@ -57,4 +59,21 @@ export const actionTypeEnum = pgEnum('action_type', [
 
 export const documentTypeEnum = pgEnum('document_type', [
   'geometry_file', // GeoJSON fayl (geometriya)
+  'attachment',    // Rasm yoki PDF hujjat
+]);
+
+export const commissionPositionEnum = pgEnum('commission_position', [
+  'hokim',
+  'hokim_deputy',
+  'economics_head',
+  'construction_head',
+  'poverty_head',
+  'ecology_head',
+  'culture_head',
+  'spirituality_head',
+  'newspaper_head',
+  'dkp_head',
+  'historian',
+  'linguist',
+  'geographer',
 ]);
