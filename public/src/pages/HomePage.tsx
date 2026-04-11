@@ -12,7 +12,7 @@ export default function HomePage() {
     <>
       {/* ─── Hero ──────────────────────────────────────────────────────────── */}
       <section>
-        <div className='max-w-7xl mx-auto px-4 sm:px-6 py-4 sm:py-8'>
+        <div className='max-w-7xl mx-auto px-4 sm:px-6 py-4'>
           <div className='grid grid-cols-1 lg:grid-cols-2 gap-10 items-center'>
             <div>
               <h1 className='text-3xl font-extrabold text-[#0f1f3d] leading-tight mb-4'>
@@ -86,9 +86,9 @@ export default function HomePage() {
                 Ariza va geometriya yuklash
               </h3>
               <p className='text-sm text-gray-500 leading-[1.75] flex-1'>
-                Davlat kadastrlari palatasi tuman/shahar filiali xodimi geonomlar
-                axborot tizimiga geografik obyektning geometriyasini yuklaydi va
-                ushbu obyektga nom taklif qilish uchun tuman/shahar
+                Davlat kadastrlari palatasi tuman/shahar filiali xodimi
+                geonomlar axborot tizimiga geografik obyektning geometriyasini
+                yuklaydi va ushbu obyektga nom taklif qilish uchun tuman/shahar
                 hokimliklariga yuboradi. Tuman hokimligi obyektga nom taklif
                 etadi va ommaviy muhokamaga chiqaradi.
               </p>
@@ -117,7 +117,8 @@ export default function HomePage() {
                 className='inline-flex items-center gap-1.5 mt-5 text-[#1565c0] text-sm font-semibold cursor-pointer border-0 bg-transparent p-0 self-start hover:text-blue-800 transition-colors'
                 onClick={() => void navigate('/discussions')}
               >
-                Muhokamalarni ko'rish <ArrowRightOutlined style={{ fontSize: 11 }} />
+                Muhokamalarni ko'rish{' '}
+                <ArrowRightOutlined style={{ fontSize: 11 }} />
               </button>
             </div>
           </div>
@@ -128,7 +129,9 @@ export default function HomePage() {
       <section className='max-w-7xl mx-auto px-4 sm:px-6 pb-16'>
         <div
           className='rounded-2xl px-8 sm:px-12 py-10 flex flex-col sm:flex-row items-center justify-between gap-6'
-          style={{ background: 'linear-gradient(135deg,#0d47a1,#1565c0,#1976d2)' }}
+          style={{
+            background: 'linear-gradient(135deg,#0d47a1,#1565c0,#1976d2)',
+          }}
         >
           <div>
             <h3 className='text-xl font-extrabold text-white mb-1.5'>

@@ -10,4 +10,5 @@ export * from './documents';
 export * from './commission-approvals';
 export * from './citizens';
 export * from './public-discussions';
+export * from './geo-object-flags';
 export * from './relations';

@@ -10,7 +10,6 @@ export const userRoleEnum = pgEnum('user_role', [
   'regional_commission',// Regional commission — step 2.2
   'regional_hokimlik',  // Regional administration — steps 3, 7
   'kadastr_agency',     // Cadastre agency — steps 4, 6
-  'peoples_council',    // People's council — step 9
 ]);
 
 // Ariza holatlari — PDF dagi 9 bosqichli workflow
@@ -39,11 +38,9 @@ export const applicationStatusEnum = pgEnum('application_status', [
   'step_6_kadastr_agency_final',
   // 7: Viloyat hokimligi — tuman hokimligiga qaror loyihasi
   'step_7_regional_hokimlik',
-  // 8: Tuman hokimligi — Kengashga yoki qaytarish
+  // 8: Tuman hokimligi — hujjat yuklaydi va yakunlaydi
   'step_8_district_hokimlik',
-  // 9: Xalq deputatlari Kengashi — E-qaror tizimiga
-  'step_9_peoples_council',
-  'completed', // Yakunlandi (E-qarorga yuborildi)
+  'completed', // Yakunlandi
   'rejected', // Rad etildi (qaytarilmas)
 ]);
 

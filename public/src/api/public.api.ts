@@ -3,13 +3,19 @@ import api from './axios';
 export interface DiscussionItem {
   id: number;
   applicationId: number;
+  geoObjectId: number;
   proposedNameUz: string;
   proposedNameKrill: string | null;
   objectType: string;
   category: string | null;
+  regionName: string | null;
   districtName: string | null;
+  geometry: object | null;
   endsAt: string;
+  createdAt: string;
   voteCount: number;
+  supportCount: number;
+  opposeCount: number;
   myVote: 'support' | 'oppose' | null;
 }
 
@@ -29,8 +35,8 @@ export interface RegistryParams {
 }
 
 export const publicApi = {
-  listDiscussions: () =>
-    api.get<{ data: DiscussionItem[] }>('/public/discussions'),
+  listDiscussions: (params?: { regionId?: number; districtId?: number }) =>
+    api.get<{ data: DiscussionItem[] }>('/public/discussions', { params }),
 
   getDiscussion: (id: number) =>
     api.get<{ data: DiscussionItem }>(`/public/discussions/${id}`),
@@ -55,6 +61,9 @@ export const publicApi = {
     api.get<{ data: { id: number; nameUz: string; code: string | null; objectTypes: { id: number; nameUz: string }[] }[] }>(
       '/public/categories',
     ),
+
+  getRegistryObject: (id: number) =>
+    api.get<{ data: unknown }>(`/public/registry/${id}`),
 
   // Telegram OTP auth
   requestOtp: (phone: string) =>

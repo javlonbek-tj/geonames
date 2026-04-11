@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import * as service from './public.service';
-import { getRegistry } from '../geographic-objects/geographic-objects.service';
+import { getRegistry, getObjectById } from '../geographic-objects/geographic-objects.service';
 import { getRegions, getDistricts } from '../locations/locations.service';
 import { getCategories } from '../admin/object-types/object-types.service';
 
@@ -30,7 +30,11 @@ export async function verifyOtp(req: Request, res: Response) {
 
 export async function listDiscussions(req: Request, res: Response) {
   const citizenId = (req as Request & { citizenId?: number }).citizenId ?? null;
-  const data = await service.listDiscussions(citizenId);
+  const { regionId, districtId } = req.query as Record<string, string>;
+  const data = await service.listDiscussions(citizenId, {
+    regionId: regionId ? Number(regionId) : undefined,
+    districtId: districtId ? Number(districtId) : undefined,
+  });
   res.json({ status: 'success', data });
 }
 
@@ -96,5 +100,10 @@ export async function getPublicDistricts(req: Request, res: Response) {
 
 export async function getPublicCategories(_req: Request, res: Response) {
   const data = await getCategories();
+  res.json({ status: 'success', data });
+}
+
+export async function getPublicGeoObject(req: Request, res: Response) {
+  const data = await getObjectById(Number(req.params.id));
   res.json({ status: 'success', data });
 }

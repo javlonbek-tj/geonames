@@ -15,7 +15,6 @@ export type ApplicationStatus =
   | 'step_6_kadastr_agency_final'
   | 'step_7_regional_hokimlik'
   | 'step_8_district_hokimlik'
-  | 'step_9_peoples_council'
   | 'completed'
   | 'rejected';
 

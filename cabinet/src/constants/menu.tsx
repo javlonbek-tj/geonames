@@ -4,6 +4,7 @@ import {
   GlobalOutlined,
   TeamOutlined,
   AppstoreOutlined,
+  WarningOutlined,
 } from '@ant-design/icons';
 import type { UserRole } from '@/types';
 
@@ -44,5 +45,11 @@ export const menuItems: MenuItem[] = [
     icon: <AppstoreOutlined />,
     label: "Ob'yekt turlari",
     roles: ['admin'],
+  },
+  {
+    key: '/non-compliant',
+    icon: <WarningOutlined />,
+    label: 'Nomuvofiqlar',
+    roles: ['kadastr_agency', 'dkp_central', 'admin'],
   },
 ];

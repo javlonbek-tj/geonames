@@ -7,6 +7,7 @@ import {
   citizenOtps,
   publicDiscussions,
   publicVotes,
+  geographicObjects,
 } from '../../db/schema';
 import { AppError } from '../../utils/appError';
 import { ENV } from '../../config';
@@ -92,42 +93,52 @@ export async function verifyOtp(
 
 // ─── Discussions ─────────────────────────────────────────────────────────────
 
-export async function listDiscussions(citizenId: number | null) {
+export async function listDiscussions(
+  citizenId: number | null,
+  filters: { regionId?: number; districtId?: number } = {},
+) {
   const rows = await db.query.publicDiscussions.findMany({
     with: {
-      application: {
+      geoObject: {
         with: {
-          geographicObjects: {
-            with: {
-              objectType: { with: { category: true } },
-              district: true,
-            },
-            limit: 1,
-          },
+          objectType: true,
+          district: true,
+          region: true,
         },
       },
-      votes: {
-        where: citizenId
-          ? eq(publicVotes.citizenId, citizenId)
-          : eq(publicVotes.citizenId, -1),
-      },
+      votes: { columns: { vote: true, citizenId: true } },
     },
     orderBy: (t, { desc }) => [desc(t.createdAt)],
   });
 
-  return rows.map((d) => {
-    const geo = d.application.geographicObjects[0];
+  const filtered = rows.filter((d) => {
+    if (filters.districtId && d.geoObject?.districtId !== filters.districtId) return false;
+    if (filters.regionId && d.geoObject?.regionId !== filters.regionId) return false;
+    return true;
+  });
+
+  return filtered.map((d) => {
+    const geo = d.geoObject;
+    const supportCount = d.votes.filter((v) => v.vote === 'support').length;
+    const opposeCount = d.votes.filter((v) => v.vote === 'oppose').length;
+    const myVote = citizenId
+      ? (d.votes.find((v) => v.citizenId === citizenId)?.vote ?? null)
+      : null;
     return {
       id: d.id,
       applicationId: d.applicationId,
+      geoObjectId: d.geoObjectId,
       proposedNameUz: geo?.nameUz ?? '—',
       proposedNameKrill: geo?.nameKrill ?? null,
       objectType: geo?.objectType?.nameUz ?? '—',
-      category: geo?.objectType?.category?.nameUz ?? null,
+      regionName: geo?.region?.nameUz ?? null,
       districtName: geo?.district?.nameUz ?? null,
       endsAt: d.endsAt.toISOString(),
-      voteCount: 0, // vote count computed in getDiscussion
-      myVote: (d.votes[0]?.vote ?? null) as 'support' | 'oppose' | null,
+      createdAt: d.createdAt.toISOString(),
+      supportCount,
+      opposeCount,
+      voteCount: supportCount + opposeCount,
+      myVote: myVote as 'support' | 'oppose' | null,
     };
   });
 }
@@ -136,44 +147,46 @@ export async function getDiscussion(id: number, citizenId: number | null) {
   const d = await db.query.publicDiscussions.findFirst({
     where: eq(publicDiscussions.id, id),
     with: {
-      application: {
+      geoObject: {
         with: {
-          geographicObjects: {
-            with: {
-              objectType: { with: { category: true } },
-              district: true,
-            },
-            limit: 1,
-          },
+          objectType: { with: { category: true } },
+          district: true,
+          region: true,
         },
       },
-      votes: {
-        where: citizenId
-          ? eq(publicVotes.citizenId, citizenId)
-          : eq(publicVotes.citizenId, -1),
-      },
+      votes: citizenId
+        ? { where: eq(publicVotes.citizenId, citizenId) }
+        : { where: eq(publicVotes.citizenId, -1) },
     },
   });
 
   if (!d) throw new AppError('Muhokama topilmadi', 404);
 
-  // Count all votes
   const allVotes = await db.query.publicVotes.findMany({
     where: eq(publicVotes.discussionId, id),
+    columns: { vote: true },
   });
 
-  const geo = d.application.geographicObjects[0];
+  const supportCount = allVotes.filter((v) => v.vote === 'support').length;
+  const opposeCount = allVotes.filter((v) => v.vote === 'oppose').length;
+
+  const geo = d.geoObject;
 
   return {
     id: d.id,
     applicationId: d.applicationId,
+    geoObjectId: d.geoObjectId,
     proposedNameUz: geo?.nameUz ?? '—',
     proposedNameKrill: geo?.nameKrill ?? null,
     objectType: geo?.objectType?.nameUz ?? '—',
     category: geo?.objectType?.category?.nameUz ?? null,
+    regionName: geo?.region?.nameUz ?? null,
     districtName: geo?.district?.nameUz ?? null,
+    geometry: (geo?.geometry ?? null) as object | null,
     endsAt: d.endsAt.toISOString(),
-    voteCount: allVotes.length,
+    supportCount,
+    opposeCount,
+    voteCount: supportCount + opposeCount,
     myVote: (d.votes[0]?.vote ?? null) as 'support' | 'oppose' | null,
   };
 }
@@ -190,24 +203,34 @@ export async function submitVote(
   if (discussion.endsAt < new Date())
     throw new AppError('Muhokama muddati tugagan', 400);
 
-  await db
-    .insert(publicVotes)
-    .values({ discussionId, citizenId, vote })
-    .onConflictDoUpdate({
-      target: [publicVotes.discussionId, publicVotes.citizenId],
-      set: { vote, updatedAt: new Date() },
-    });
+  const existing = await db.query.publicVotes.findFirst({
+    where: and(
+      eq(publicVotes.discussionId, discussionId),
+      eq(publicVotes.citizenId, citizenId),
+    ),
+  });
+  if (existing) throw new AppError('Siz allaqachon ovoz bergansiz', 409);
+
+  await db.insert(publicVotes).values({ discussionId, citizenId, vote });
 }
 
 // ─── Used by applications service when submitting to public discussion ────────
 
 export async function createDiscussion(applicationId: number): Promise<void> {
   const endsAt = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000); // 10 days
+
+  const geoObjs = await db.query.geographicObjects.findMany({
+    where: eq(geographicObjects.applicationId, applicationId),
+    columns: { id: true },
+  });
+
+  if (geoObjs.length === 0) return;
+
   await db
     .insert(publicDiscussions)
-    .values({ applicationId, endsAt })
+    .values(geoObjs.map((g) => ({ applicationId, geoObjectId: g.id, endsAt })))
     .onConflictDoUpdate({
-      target: publicDiscussions.applicationId,
+      target: [publicDiscussions.applicationId, publicDiscussions.geoObjectId],
       set: { endsAt, createdAt: new Date() },
     });
 }

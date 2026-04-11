@@ -18,6 +18,7 @@ router.post('/discussions/vote', requireCitizenAuth, controller.submitVote);
 
 // Public registry & reference data (no auth)
 router.get('/registry', controller.getPublicRegistry);
+router.get('/registry/:id', controller.getPublicGeoObject);
 router.get('/locations/regions', controller.getPublicRegions);
 router.get('/locations/districts', controller.getPublicDistricts);
 router.get('/categories', controller.getPublicCategories);

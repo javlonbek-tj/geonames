@@ -38,11 +38,16 @@ export default function AppLayout() {
     },
   ];
 
+  const siderWidth = collapsed ? 80 : 260;
+
   return (
     <Layout className='min-h-screen'>
       <Sidebar collapsed={collapsed} />
-      <Layout>
-        <Header className='px-0 bg-white flex items-center justify-between pr-4'>
+      <Layout style={{ marginLeft: siderWidth, transition: 'margin-left 0.2s' }}>
+        <Header
+          className='px-0 bg-white flex items-center justify-between pr-4 border-b border-gray-200'
+          style={{ position: 'sticky', top: 0, zIndex: 100, width: '100%' }}
+        >
           <Button
             type='text'
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}

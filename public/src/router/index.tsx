@@ -9,6 +9,7 @@ const DiscussionPage = lazy(() => import('@/pages/DiscussionPage'));
 const RegistryPage = lazy(() => import('@/pages/RegistryPage'));
 const TelegramLoginPage = lazy(() => import('@/pages/TelegramLoginPage'));
 const GuidePage = lazy(() => import('@/pages/GuidePage'));
+const GeoObjectDetailPage = lazy(() => import('@/pages/GeoObjectDetailPage'));
 
 const fallback = (
   <div className='flex h-screen items-center justify-center'>
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: '/discussions', element: wrap(DiscussionsPage) },
       { path: '/discussions/:id', element: wrap(DiscussionPage) },
       { path: '/registry', element: wrap(RegistryPage) },
+      { path: '/registry/:id', element: wrap(GeoObjectDetailPage) },
       { path: '/guide', element: wrap(GuidePage) },
       { path: '/login', element: wrap(TelegramLoginPage) },
     ],

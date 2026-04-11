@@ -10,6 +10,7 @@ import { documents } from './documents';
 import { commissionApprovals } from './commission-approvals';
 import { citizens, citizenOtps } from './citizens';
 import { publicDiscussions, publicVotes } from './public-discussions';
+import { geoObjectFlags } from './geo-object-flags';
 
 export const objectCategoriesRelations = relations(
   objectCategories,
@@ -152,6 +153,10 @@ export const publicDiscussionsRelations = relations(publicDiscussions, ({ one, m
     fields: [publicDiscussions.applicationId],
     references: [applications.id],
   }),
+  geoObject: one(geographicObjects, {
+    fields: [publicDiscussions.geoObjectId],
+    references: [geographicObjects.id],
+  }),
   votes: many(publicVotes),
 }));
 
@@ -163,6 +168,21 @@ export const publicVotesRelations = relations(publicVotes, ({ one }) => ({
   citizen: one(citizens, {
     fields: [publicVotes.citizenId],
     references: [citizens.id],
+  }),
+}));
+
+export const geoObjectFlagsRelations = relations(geoObjectFlags, ({ one }) => ({
+  geoObject: one(geographicObjects, {
+    fields: [geoObjectFlags.geoObjectId],
+    references: [geographicObjects.id],
+  }),
+  application: one(applications, {
+    fields: [geoObjectFlags.applicationId],
+    references: [applications.id],
+  }),
+  marker: one(users, {
+    fields: [geoObjectFlags.markedBy],
+    references: [users.id],
   }),
 }));
 

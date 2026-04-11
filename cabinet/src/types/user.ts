@@ -8,7 +8,7 @@ export type UserRole =
   | 'regional_hokimlik'
   | 'kadastr_agency'
   | 'dkp_central'
-  | 'peoples_council';
+;
 
 export type CommissionPosition =
   | 'hokim' | 'hokim_deputy' | 'economics_head' | 'construction_head'

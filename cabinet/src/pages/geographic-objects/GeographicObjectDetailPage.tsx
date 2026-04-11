@@ -148,6 +148,7 @@ export default function GeographicObjectDetailPage() {
           {history.length === 0 ? (
             <Empty description="Tarix mavjud emas" image={Empty.PRESENTED_IMAGE_SIMPLE} />
           ) : (
+            <div style={{ maxHeight: 400, overflowY: 'auto' }} className="pr-1">
             <Timeline
               className="pt-2"
               items={history.map((h) => {
@@ -184,6 +185,7 @@ export default function GeographicObjectDetailPage() {
                 };
               })}
             />
+            </div>
           )}
         </Card>
       )}

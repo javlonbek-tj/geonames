@@ -159,33 +159,23 @@ export const WORKFLOW: TransitionMap = {
       allowedRole: 'regional_hokimlik',
       nextStatus: 'step_8_district_hokimlik',
       actionType: 'submit',
-      label: "Qaror loyihasi tayyorlandi, tuman hokimligiga muhokama uchun yuborish",
+      label: "Tuman hokimligiga muhokama uchun yuborish",
     },
   },
 
-  // BOSQICH 8: Tuman hokimligi — Kengashga yoki qaytarish
+  // BOSQICH 8: Tuman hokimligi — Kengash qarori PDFini yuklaydi va yakunlaydi
   step_8_district_hokimlik: {
     approve: {
       allowedRole: 'district_hokimlik',
-      nextStatus: 'step_9_peoples_council',
+      nextStatus: 'completed',
       actionType: 'approve',
-      label: "Muhokama o'tkazildi, Xalq deputatlari Kengashiga kiritish",
+      label: "Yakunlash",
     },
     return: {
       allowedRole: 'district_hokimlik',
       nextStatus: 'step_2_1_district_commission',
       actionType: 'return',
       label: "Qayta ko'rib chiqish uchun tuman komissiyasiga qaytarish",
-    },
-  },
-
-  // BOSQICH 9: Xalq deputatlari Kengashi → yakunlandi
-  step_9_peoples_council: {
-    approve: {
-      allowedRole: 'peoples_council',
-      nextStatus: 'completed',
-      actionType: 'approve',
-      label: "Qaror qabul qilindi, E-qaror tizimiga yuborish",
     },
   },
 };

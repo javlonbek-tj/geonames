@@ -27,8 +27,10 @@ import {
   SaveOutlined,
   DownloadOutlined,
   ExpandOutlined,
+  CloseOutlined,
   FilePdfOutlined,
   FileImageOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import {
   useApplication,
@@ -43,6 +45,10 @@ import {
 } from '@/hooks/commission/useCommission';
 import { useDiscussionResults } from '@/hooks/public/usePublicDiscussion';
 import {
+  useApplicationFlags,
+  useToggleGeoFlag,
+} from '@/hooks/geo-flags/useGeoFlags';
+import {
   useDocuments,
   useUploadDocument,
   useDeleteDocument,
@@ -53,6 +59,7 @@ import { useAuthStore } from '@/store/authStore';
 import {
   STATUS_LABELS,
   STATUS_COLORS,
+  STATUS_HOLDER,
   ROLE_LABELS,
   ACTION_LABELS,
   ACTION_COLORS,
@@ -126,7 +133,6 @@ export default function ApplicationDetailPage() {
         'step_6_kadastr_agency_final',
         'step_7_regional_hokimlik',
         'step_8_district_hokimlik',
-        'step_9_peoples_council',
         'completed',
       ].includes(app.currentStatus));
   const { data: commissionApprovals = [] } = useCommissionApprovals(
@@ -142,6 +148,19 @@ export default function ApplicationDetailPage() {
     useRejectCommission(appId);
   const { mutate: revokeApproval, isPending: isRevoking } =
     useRevokeCommissionApproval(appId);
+
+  const isKadastrFlagStep = app?.currentStatus === 'step_5_dkp_central' && user?.role === 'dkp_central';
+  const FLAG_VISIBLE_STATUSES = [
+    'step_6_kadastr_agency_final',
+    'step_7_regional_hokimlik',
+    'step_8_district_hokimlik',
+    'completed',
+  ];
+  const canViewFlags = !isKadastrFlagStep && !!app?.currentStatus && FLAG_VISIBLE_STATUSES.includes(app.currentStatus);
+  const { data: geoFlags = [] } = useApplicationFlags((isKadastrFlagStep || canViewFlags) ? appId : 0);
+  const { mutate: toggleFlag, isPending: isTogglingFlag } = useToggleGeoFlag(appId);
+  const [flagModal, setFlagModal] = useState<{ geoObjectId: number } | null>(null);
+  const [flagComment, setFlagComment] = useState('');
   const [rejectModal, setRejectModal] = useState(false);
   const [rejectComment, setRejectComment] = useState('');
 
@@ -219,7 +238,12 @@ export default function ApplicationDetailPage() {
       );
     });
   const hasUnsavedEdits = Object.keys(nameEdits).length > 0;
-  const actionsBlocked = canEnterNames && (!allNamed || hasUnsavedEdits);
+  const needsDocumentUpload =
+    user?.role === 'district_hokimlik' &&
+    app?.currentStatus === 'step_8_district_hokimlik' &&
+    !documents.some((d) => d.uploader?.id === user?.id);
+  const actionsBlocked =
+    (canEnterNames && (!allNamed || hasUnsavedEdits)) || needsDocumentUpload;
 
   const canDownloadGeoJson =
     user?.role === 'dkp_regional' || user?.role === 'dkp_central';
@@ -398,6 +422,44 @@ export default function ApplicationDetailPage() {
           <Tag color={v ? 'green' : 'orange'}>{v ? 'Mavjud' : 'Yangi'}</Tag>
         ),
     },
+    // Nomuvofiq ustuni: dkp_central uchun tahrirlash, kadastr_agency uchun faqat ko'rish
+    ...(isKadastrFlagStep || canViewFlags
+      ? [
+          {
+            title: 'Holat',
+            key: 'nomuvofiq',
+            width: 130,
+            render: (geo: GeographicObject) => {
+              const flag = geoFlags.find((f) => f.geoObjectId === geo.id);
+              if (canViewFlags) {
+                return flag ? (
+                  <Tag color='red'>Nomuvofiq</Tag>
+                ) : (
+                  <Tag color='green'>Muvofiq</Tag>
+                );
+              }
+              return (
+                <Button
+                  size='small'
+                  danger={!!flag}
+                  type={flag ? 'primary' : 'default'}
+                  loading={isTogglingFlag}
+                  onClick={() => {
+                    if (flag) {
+                      toggleFlag({ geoObjectId: geo.id });
+                    } else {
+                      setFlagComment('');
+                      setFlagModal({ geoObjectId: geo.id });
+                    }
+                  }}
+                >
+                  {flag ? 'Nomuvofiq' : 'Muvofiq'}
+                </Button>
+              );
+            },
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -508,73 +570,98 @@ export default function ApplicationDetailPage() {
               extra={
                 <Space size={8}>
                   {canDownloadGeoJson && (
-                    <Button
-                      size='small'
-                      icon={<DownloadOutlined />}
-                      onClick={handleDownloadGeoJson}
-                    >
+                    <Button size='small' icon={<DownloadOutlined />} onClick={handleDownloadGeoJson}>
                       GeoJSON yuklab olish
                     </Button>
                   )}
-                  <Button
-                    size='small'
-                    icon={<ExpandOutlined />}
+                  <button
                     onClick={() => setMapFullscreen(true)}
-                  />
+                    className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer border border-[#d1d9e8] bg-white hover:bg-gray-50 transition-colors'
+                    style={{ color: '#1565c0' }}
+                  >
+                    <ExpandOutlined style={{ fontSize: 12 }} />
+                    To'liq ekran
+                  </button>
                 </Space>
               }
             >
-              <GeoJsonMap
-                geojson={mapGeojson}
-                height='380px'
-                highlightedIndex={activeGeoIdx}
-              />
+              {!mapFullscreen && (
+                <GeoJsonMap
+                  geojson={mapGeojson}
+                  height='380px'
+                  highlightedIndex={activeGeoIdx}
+                />
+              )}
             </Card>
           )}
 
           {/* Tarix */}
           <Card title='Harakat tarixi' size='small'>
-            {app.history && app.history.length > 0 ? (
+            {(app.history && app.history.length > 0) || app.currentStatus ? (
               <Timeline
-                items={app.history.map((h) => {
-                  const statusLabel = h.fromStatus
-                    ? STATUS_LABELS[h.fromStatus as ApplicationStatus]
-                    : STATUS_LABELS[h.toStatus as ApplicationStatus];
-                  return {
-                    key: h.id,
-                    color:
-                      h.actionType === 'approve'
-                        ? 'green'
-                        : h.actionType === 'return' || h.actionType === 'reject'
-                          ? 'red'
-                          : 'blue',
-                    children: (
-                      <div className='flex flex-col gap-0.5'>
-                        <div className='flex items-center gap-2 flex-wrap'>
-                          <Text strong>{statusLabel}</Text>
-                          <Tag
-                            color={ACTION_COLORS[h.actionType]}
-                            className='m-0'
-                          >
-                            {ACTION_LABELS[h.actionType] ?? h.actionType}
-                          </Tag>
+                items={[
+                  ...(app.history ?? []).map((h) => {
+                    const statusLabel = h.fromStatus
+                      ? STATUS_LABELS[h.fromStatus as ApplicationStatus]
+                      : STATUS_LABELS[h.toStatus as ApplicationStatus];
+                    return {
+                      key: h.id,
+                      color:
+                        h.actionType === 'approve'
+                          ? 'green'
+                          : h.actionType === 'return' || h.actionType === 'reject'
+                            ? 'red'
+                            : 'blue',
+                      children: (
+                        <div className='flex flex-col gap-0.5'>
+                          <div className='flex items-center gap-2 flex-wrap'>
+                            <Text strong>{statusLabel}</Text>
+                            <Tag color={ACTION_COLORS[h.actionType]} className='m-0'>
+                              {ACTION_LABELS[h.actionType] ?? h.actionType}
+                            </Tag>
+                            <Text type='secondary' className='text-xs'>
+                              {new Date(h.createdAt).toLocaleString('uz-UZ')}
+                            </Text>
+                          </div>
                           <Text type='secondary' className='text-xs'>
-                            {new Date(h.createdAt).toLocaleString('uz-UZ')}
+                            {h.performer?.fullName ?? h.performer?.username}
+                            {h.performer?.role
+                              ? ` · ${ROLE_LABELS[h.performer.role as keyof typeof ROLE_LABELS]}`
+                              : ''}
                           </Text>
+                          {h.comment && (
+                            <Text className='text-sm'>{h.comment}</Text>
+                          )}
                         </div>
-                        <Text type='secondary' className='text-xs'>
-                          {h.performer?.fullName ?? h.performer?.username}
-                          {h.performer?.role
-                            ? ` · ${ROLE_LABELS[h.performer.role as keyof typeof ROLE_LABELS]}`
-                            : ''}
-                        </Text>
-                        {h.comment && (
-                          <Text className='text-sm'>{h.comment}</Text>
-                        )}
-                      </div>
-                    ),
-                  };
-                })}
+                      ),
+                    };
+                  }),
+                  // Joriy holat — completed/rejected bo'lmasa ko'rsatiladi
+                  ...(app.currentStatus && app.currentStatus !== 'completed' && app.currentStatus !== 'rejected'
+                    ? [{
+                        key: 'current',
+                        dot: <ClockCircleOutlined style={{ fontSize: 14, color: '#fa8c16' }} />,
+                        color: 'orange' as const,
+                        children: (
+                          <div className='flex flex-col gap-0.5'>
+                            <div className='flex items-center gap-2 flex-wrap'>
+                              <Text strong style={{ color: '#fa8c16' }}>
+                                {STATUS_LABELS[app.currentStatus as ApplicationStatus]}
+                              </Text>
+                              <Tag color='orange' className='m-0'>Kutilmoqda</Tag>
+                            </div>
+                            {STATUS_HOLDER[app.currentStatus as ApplicationStatus] && (
+                              <Text type='secondary' className='text-xs'>
+                                Hozir kimda: <span className='font-medium text-gray-700'>
+                                  {STATUS_HOLDER[app.currentStatus as ApplicationStatus]}
+                                </span>
+                              </Text>
+                            )}
+                          </div>
+                        ),
+                      }]
+                    : []),
+                ]}
               />
             ) : (
               <Empty
@@ -774,6 +861,32 @@ export default function ApplicationDetailPage() {
               );
             })()}
 
+          {/* Nomuvofiq belgilash modal */}
+          <Modal
+            open={!!flagModal}
+            title='Nomuvofiq deb belgilash'
+            okText='Belgilash'
+            okButtonProps={{ danger: true, loading: isTogglingFlag }}
+            cancelText='Bekor qilish'
+            onCancel={() => setFlagModal(null)}
+            onOk={() => {
+              if (!flagModal) return;
+              toggleFlag(
+                { geoObjectId: flagModal.geoObjectId, comment: flagComment.trim() || undefined },
+                { onSuccess: () => setFlagModal(null) },
+              );
+            }}
+            centered
+          >
+            <TextArea
+              rows={3}
+              placeholder='Izoh (ixtiyoriy)...'
+              value={flagComment}
+              onChange={(e) => setFlagComment(e.target.value)}
+              className='mt-3'
+            />
+          </Modal>
+
           {/* Rad etish modal */}
           <Modal
             open={rejectModal}
@@ -816,9 +929,11 @@ export default function ApplicationDetailPage() {
                   showIcon
                   className='mb-3'
                   message={
-                    hasUnsavedEdits && allNamed
-                      ? "Nomlarni saqlang, so'ng yuborishingiz mumkin"
-                      : "Barcha ob'yektlarga lotin va kirill nomlar berilib, saqlangunga qadar yuborish mumkin emas"
+                    needsDocumentUpload
+                      ? "Yakunlash uchun avval Kengash qarorining PDF nusxasini yuklang"
+                      : hasUnsavedEdits && allNamed
+                        ? "Nomlarni saqlang, so'ng yuborishingiz mumkin"
+                        : "Barcha ob'yektlarga lotin va kirill nomlar berilib, saqlangunga qadar yuborish mumkin emas"
                   }
                 />
               )}
@@ -896,7 +1011,7 @@ export default function ApplicationDetailPage() {
                           {doc.originalName}
                         </a>
                       </Space>
-                      {actions.length > 0 && (
+                      {actions.length > 0 && doc.uploader?.id === user?.id && (
                         <Popconfirm
                           title="O'chirilsinmi?"
                           onConfirm={() => deleteDoc(doc.id)}
@@ -925,23 +1040,24 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      {/* Fullscreen map modal */}
-      {mapGeojson && (
-        <Modal
-          open={mapFullscreen}
-          onCancel={() => setMapFullscreen(false)}
-          footer={null}
-          width='95vw'
-          style={{ top: 16 }}
-          styles={{ body: { padding: 0, height: 'calc(95vh - 56px)' } }}
-          title="Xaritada ko'rish"
-        >
-          <GeoJsonMap
-            geojson={mapGeojson}
-            height='100%'
-            highlightedIndex={activeGeoIdx}
-          />
-        </Modal>
+
+      {/* Fullscreen map */}
+      {mapFullscreen && mapGeojson && (
+        <div className='fixed inset-0 z-[9999] flex flex-col' style={{ background: '#000' }}>
+          <div className='flex items-center justify-between px-4 py-3 shrink-0' style={{ background: '#0f1f3d' }}>
+            <span className='text-white font-semibold text-sm'>{app.applicationNumber} — Xaritada ko'rish</span>
+            <button
+              onClick={() => setMapFullscreen(false)}
+              className='w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0 transition-colors'
+              style={{ background: 'rgba(255,255,255,0.15)', color: '#fff' }}
+            >
+              <CloseOutlined style={{ fontSize: 14 }} />
+            </button>
+          </div>
+          <div className='flex-1'>
+            <GeoJsonMap geojson={mapGeojson} height='100%' highlightedIndex={activeGeoIdx} />
+          </div>
+        </div>
       )}
 
       {/* Action modal */}

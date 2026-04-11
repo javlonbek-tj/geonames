@@ -33,10 +33,25 @@ export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   step_5_dkp_central:             '5. DKP markaziy apparatda',
   step_6_kadastr_agency_final:    '6. Kadastr agentligi (yakuniy)',
   step_7_regional_hokimlik:       '7. Viloyat hokimligi (qaror)',
-  step_8_district_hokimlik:       '8. Tuman hokimligi (muhokama)',
-  step_9_peoples_council:         '9. Xalq deputatlari Kengashida',
+  step_8_district_hokimlik:       '8. Tuman hokimligi (yakunlash)',
   completed:                      'Yakunlandi',
   rejected:                       'Rad etildi',
+};
+
+export const STATUS_HOLDER: Partial<Record<ApplicationStatus, string>> = {
+  step_1_geometry_uploaded:     'DKP tuman filiali',
+  step_1_1_dkp_regional:        'Viloyat DKP',
+  step_1_2_dkp_coordination:    'Respublika DKP',
+  step_2_district_hokimlik:     'Tuman hokimligi',
+  step_2_public_discussion:     'Fuqarolar (ommaviy muhokama)',
+  step_2_1_district_commission: 'Tuman komissiyasi',
+  step_2_2_regional_commission: 'Viloyat komissiyasi',
+  step_3_regional_hokimlik:     'Viloyat hokimligi',
+  step_4_kadastr_agency:        'Kadastr agentligi',
+  step_5_dkp_central:           'DKP markaziy apparat',
+  step_6_kadastr_agency_final:  'Kadastr agentligi',
+  step_7_regional_hokimlik:     'Viloyat hokimligi',
+  step_8_district_hokimlik:     'Tuman hokimligi',
 };
 
 export const STATUS_COLORS: Record<ApplicationStatus, string> = {
@@ -53,7 +68,6 @@ export const STATUS_COLORS: Record<ApplicationStatus, string> = {
   step_6_kadastr_agency_final:    'processing',
   step_7_regional_hokimlik:       'processing',
   step_8_district_hokimlik:       'processing',
-  step_9_peoples_council:         'processing',
   completed:                      'success',
   rejected:                       'error',
 };

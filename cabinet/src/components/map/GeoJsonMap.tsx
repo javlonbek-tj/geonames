@@ -26,8 +26,6 @@ export default function GeoJsonMap({
   geojson,
   height = '400px',
   highlightedIndex,
-  onFeatureHover,
-  onFeatureClick,
 }: GeoJsonMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -35,12 +33,6 @@ export default function GeoJsonMap({
   const labelMarkersRef = useRef<L.Marker[]>([]);
   const highlightedIndexRef = useRef<number | null | undefined>(highlightedIndex);
 
-  const onHoverRef = useRef(onFeatureHover);
-  const onClickRef = useRef(onFeatureClick);
-  useEffect(() => { onHoverRef.current = onFeatureHover; }, [onFeatureHover]);
-  useEffect(() => { onClickRef.current = onFeatureClick; }, [onFeatureClick]);
-
-  // Initialize map
   useEffect(() => {
     if (!containerRef.current) return;
     if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; }
@@ -63,20 +55,6 @@ export default function GeoJsonMap({
         const idx = paths.length;
         paths.push(layer as L.Path);
 
-        // Popup
-        const p = feature.properties ?? {};
-        const lines: string[] = [];
-        lines.push(
-          p.name
-            ? `<strong>${p.name}</strong>`
-            : `<span style="color:#aaa">#${idx + 1} — nomi kiritilmagan</span>`,
-        );
-        if (p.objectType) lines.push(`<span style="color:#888;font-size:12px">Tur:</span> ${p.objectType}`);
-        if (p.category) lines.push(`<span style="color:#888;font-size:12px">Guruh:</span> ${p.category}`);
-        layer.bindPopup(lines.join('<br/>'), { maxWidth: 260 });
-
-
-        // Numbered label at centroid
         const center =
           (layer as any).getBounds?.()?.isValid?.()
             ? (layer as any).getBounds().getCenter()
@@ -85,6 +63,19 @@ export default function GeoJsonMap({
         if (center) {
           const isHighlighted = highlightedIndexRef.current === idx;
           const marker = L.marker(center, { icon: makeLabel(idx + 1, isHighlighted), zIndexOffset: 500 });
+
+          const p = feature.properties ?? {};
+          const lines: string[] = [];
+          lines.push(
+            p.name
+              ? `<strong>${p.name}</strong>`
+              : `<span style="color:#aaa">#${idx + 1} — nomi kiritilmagan</span>`,
+          );
+          if (p.objectType) lines.push(`<span style="color:#888;font-size:12px">Tur: </span>${p.objectType}`);
+          marker.bindPopup(lines.join('<br/>'), { maxWidth: 220 });
+          marker.on('mouseover', () => marker.openPopup());
+          marker.on('mouseout', () => marker.closePopup());
+
           marker.addTo(map);
           markers.push(marker);
         }
@@ -94,7 +85,6 @@ export default function GeoJsonMap({
     layersRef.current = paths;
     labelMarkersRef.current = markers;
 
-    // Apply current highlight state
     paths.forEach((layer, i) => {
       (layer as any).setStyle?.(i === highlightedIndexRef.current ? HIGHLIGHT_STYLE : DEFAULT_STYLE);
     });
@@ -109,7 +99,6 @@ export default function GeoJsonMap({
     return () => { map.remove(); mapRef.current = null; layersRef.current = []; labelMarkersRef.current = []; };
   }, [geojson]);
 
-  // Update highlight when it changes
   useEffect(() => {
     highlightedIndexRef.current = highlightedIndex;
     layersRef.current.forEach((layer, i) => {

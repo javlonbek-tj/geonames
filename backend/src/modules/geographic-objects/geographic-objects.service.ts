@@ -6,6 +6,7 @@ import {
   applicationHistory,
   districts,
   objectTypes,
+  geoObjectFlags,
 } from '../../db/schema';
 import { AppError } from '../../utils/appError';
 import type { JwtPayload } from '../auth/auth.service';

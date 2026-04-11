@@ -8,6 +8,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { applications } from './applications';
 import { citizens } from './citizens';
+import { geographicObjects } from './geographic-objects';
 
 export const voteTypeEnum = pgEnum('vote_type', ['support', 'oppose']);
 
@@ -15,11 +16,15 @@ export const publicDiscussions = pgTable('public_discussions', {
   id: serial('id').primaryKey(),
   applicationId: integer('application_id')
     .references(() => applications.id, { onDelete: 'cascade' })
-    .notNull()
-    .unique(),
+    .notNull(),
+  geoObjectId: integer('geo_object_id')
+    .references(() => geographicObjects.id, { onDelete: 'cascade' })
+    .notNull(),
   endsAt: timestamp('ends_at').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
+}, (t) => [
+  unique('uq_discussion_geo_object').on(t.applicationId, t.geoObjectId),
+]);
 
 export const publicVotes = pgTable('public_votes', {
   id: serial('id').primaryKey(),

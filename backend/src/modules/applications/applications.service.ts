@@ -1,6 +1,6 @@
 import { eq, inArray, and, count } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { applications, applicationHistory, geographicObjects, commissionApprovals } from '../../db/schema';
+import { applications, applicationHistory, geographicObjects, commissionApprovals, geoObjectFlags } from '../../db/schema';
 import { REQUIRED_POSITIONS } from '../commission/commission.service';
 import { createDiscussion } from '../public/public.service';
 import { AppError } from '../../utils/appError';
@@ -18,7 +18,6 @@ const ROLE_STATUSES: Record<string, string[]> = {
   regional_commission: ['step_2_2_regional_commission'],
   regional_hokimlik:   ['step_3_regional_hokimlik', 'step_7_regional_hokimlik'],
   kadastr_agency:      ['step_4_kadastr_agency', 'step_6_kadastr_agency_final'],
-  peoples_council:     ['step_9_peoples_council'],
 };
 
 const GEO_WITH = {
@@ -234,6 +233,26 @@ export async function performAction(
   // Ommaviy muhokama bosqichiga o'tganda avtomatik muhokama yaratish
   if (toStatus === 'step_2_public_discussion') {
     await createDiscussion(id);
+  }
+
+  // Yakunlanganda: nomuvofiq bo'lmagan yangi obyektlarni reestirga avtomatik qo'shish
+  if (toStatus === 'completed') {
+    const flags = await db.query.geoObjectFlags.findMany({
+      where: eq(geoObjectFlags.applicationId, id),
+      columns: { geoObjectId: true },
+    });
+    const flaggedIds = new Set(flags.map((f) => f.geoObjectId));
+
+    const newObjects = app.geographicObjects.filter(
+      (o) => o.existsInRegistry === false && !flaggedIds.has(o.id),
+    );
+
+    if (newObjects.length > 0) {
+      await db
+        .update(geographicObjects)
+        .set({ existsInRegistry: true, updatedAt: new Date() })
+        .where(inArray(geographicObjects.id, newObjects.map((o) => o.id)));
+    }
   }
 
   return getApplicationById(id);

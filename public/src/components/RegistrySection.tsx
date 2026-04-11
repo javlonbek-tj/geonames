@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Select, Pagination, Spin, Tooltip } from 'antd';
 import { SearchOutlined, ClearOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
@@ -44,6 +45,7 @@ interface GeoObject {
 }
 
 export default function RegistrySection() {
+  const navigate = useNavigate();
   const [filters, setFilters] = useState<RegistryParams>({ page: 1, limit: DEFAULT_LIMIT });
   const [searchInput, setSearchInput] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>();
@@ -236,7 +238,8 @@ export default function RegistrySection() {
                 rows.map((obj, idx) => (
                   <tr
                     key={obj.id}
-                    className='hover:bg-blue-50/40 transition-colors'
+                    className='hover:bg-blue-50/40 transition-colors cursor-pointer'
+                    onClick={() => void navigate(`/registry/${obj.id}`)}
                   >
                     <td
                       className='px-3 py-2 text-gray-400 text-xs text-center'
@@ -268,7 +271,11 @@ export default function RegistrySection() {
                         <div className='text-xs text-gray-400'>{obj.district.nameUz}</div>
                       )}
                     </td>
-                    <td className='px-3 py-2' style={{ border: '1px solid #e3e8f0' }}>
+                    <td
+                      className='px-3 py-2'
+                      style={{ border: '1px solid #e3e8f0' }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       {obj.registryNumber
                         ? <CopyableNumber value={obj.registryNumber} />
                         : <span className='text-gray-400 text-xs'>—</span>}
