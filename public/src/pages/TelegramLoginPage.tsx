@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { App, Button, Form, Input } from 'antd';
-import { MobileOutlined, LockOutlined } from '@ant-design/icons';
+import { PhoneOutlined, LockOutlined } from '@ant-design/icons';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router';
 import { publicApi } from '@/api/public.api';
@@ -61,9 +61,9 @@ export default function TelegramLoginPage() {
         background: '#f9fafc',
         minHeight: '100vh',
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         justifyContent: 'center',
-        padding: '40px 16px',
+        padding: '80px 16px 40px',
       }}
     >
       <div style={{ width: '100%', maxWidth: 440 }}>
@@ -183,7 +183,7 @@ export default function TelegramLoginPage() {
               <Form
                 form={phoneForm}
                 layout='vertical'
-                onFinish={(v) => requestOtp.mutate(v)}
+                onFinish={(v) => requestOtp.mutate({ phone: '+998' + String(v.phone).replace(/\D/g, '') })}
               >
                 <Form.Item
                   name='phone'
@@ -195,15 +195,21 @@ export default function TelegramLoginPage() {
                   rules={[
                     { required: true, message: 'Telefon raqam kiriting' },
                     {
-                      pattern: /^\+998\d{9}$/,
-                      message: '+998XXXXXXXXX formatida kiriting',
+                      pattern: /^\d{9}$/,
+                      message: '9 ta raqam kiriting (901234567)',
                     },
                   ]}
                 >
                   <Input
-                    prefix={<MobileOutlined style={{ color: '#9ca3af' }} />}
-                    placeholder='+998901234567'
+                    addonBefore={
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#374151', fontWeight: 600 }}>
+                        <PhoneOutlined style={{ fontSize: 14, color: '#1565c0' }} />
+                        +998
+                      </span>
+                    }
+                    placeholder='901234567'
                     size='large'
+                    maxLength={9}
                     style={{ borderRadius: 10 }}
                     autoComplete='off'
                   />

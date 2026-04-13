@@ -14,6 +14,7 @@ const GeographicObjectDetailPage = lazy(() => import('@/pages/geographic-objects
 const UsersPage = lazy(() => import('@/pages/admin/UsersPage'));
 const ObjectTypesPage = lazy(() => import('@/pages/admin/ObjectTypesPage'));
 const NonCompliantPage = lazy(() => import('@/pages/non-compliant/NonCompliantPage'));
+const MapPage = lazy(() => import('@/pages/map/MapPage'));
 
 const fallback = (
   <div className='flex h-screen items-center justify-center'>
@@ -49,6 +50,7 @@ const router = createBrowserRouter([
           { path: '/admin/users', element: wrap(UsersPage) },
           { path: '/admin/object-types', element: wrap(ObjectTypesPage) },
           { path: '/non-compliant', element: wrap(NonCompliantPage) },
+          { path: '/map', element: wrap(MapPage) },
         ],
       },
     ],

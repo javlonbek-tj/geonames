@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Select, Pagination, Spin, Tooltip } from 'antd';
 import { SearchOutlined, ClearOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
@@ -46,9 +46,33 @@ interface GeoObject {
 
 export default function RegistrySection() {
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<RegistryParams>({ page: 1, limit: DEFAULT_LIMIT });
-  const [searchInput, setSearchInput] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number | undefined>();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const filters: RegistryParams = {
+    page: Number(searchParams.get('page') || 1),
+    limit: Number(searchParams.get('limit') || DEFAULT_LIMIT),
+    search: searchParams.get('search') || undefined,
+    regionId: searchParams.get('regionId') ? Number(searchParams.get('regionId')) : undefined,
+    districtId: searchParams.get('districtId') ? Number(searchParams.get('districtId')) : undefined,
+    categoryId: searchParams.get('categoryId') ? Number(searchParams.get('categoryId')) : undefined,
+    objectTypeId: searchParams.get('objectTypeId') ? Number(searchParams.get('objectTypeId')) : undefined,
+  };
+  const selectedCategoryId = filters.categoryId;
+
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+
+  const setFilters = useCallback((updater: RegistryParams | ((prev: RegistryParams) => RegistryParams)) => {
+    const next = typeof updater === 'function' ? updater(filters) : updater;
+    const params = new URLSearchParams();
+    if (next.page && next.page !== 1) params.set('page', String(next.page));
+    if (next.limit && next.limit !== DEFAULT_LIMIT) params.set('limit', String(next.limit));
+    if (next.search) params.set('search', next.search);
+    if (next.regionId) params.set('regionId', String(next.regionId));
+    if (next.districtId) params.set('districtId', String(next.districtId));
+    if (next.categoryId) params.set('categoryId', String(next.categoryId));
+    if (next.objectTypeId) params.set('objectTypeId', String(next.objectTypeId));
+    setSearchParams(params, { replace: true });
+  }, [filters, setSearchParams]);
 
   const { data, isFetching } = useQuery({
     queryKey: ['public-registry', filters],
@@ -85,9 +109,8 @@ export default function RegistrySection() {
   }, [searchInput]);
 
   const clearFilters = () => {
-    setFilters({ page: 1, limit: DEFAULT_LIMIT });
     setSearchInput('');
-    setSelectedCategoryId(undefined);
+    setSearchParams({}, { replace: true });
   };
 
   const hasFilters =
@@ -158,7 +181,6 @@ export default function RegistrySection() {
                 label: c.code ? `[${c.code}] ${c.nameUz}` : c.nameUz,
               }))}
               onChange={(v) => {
-                setSelectedCategoryId(v);
                 setFilters((f) => ({ ...f, page: 1, categoryId: v, objectTypeId: undefined }));
               }}
             />

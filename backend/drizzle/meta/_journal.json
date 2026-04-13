@@ -64,6 +64,20 @@
       "when": 1775803342791,
       "tag": "0008_many_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1776073764280,
+      "tag": "0009_affiliation_to_text",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1776075434072,
+      "tag": "0010_add_soato_to_geographic_objects",
+      "breakpoints": true
     }
   ]
 }

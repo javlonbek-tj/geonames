@@ -7,6 +7,7 @@ interface GeoJsonMapProps {
   highlightedIndex?: number | null;
   onFeatureHover?: (index: number | null) => void;
   onFeatureClick?: (index: number) => void;
+  showLabels?: boolean;
 }
 
 const DEFAULT_STYLE: L.PathOptions = { color: '#1677ff', weight: 2.5, opacity: 0.8, fillOpacity: 0.12 };
@@ -26,6 +27,7 @@ export default function GeoJsonMap({
   geojson,
   height = '400px',
   highlightedIndex,
+  showLabels = true,
 }: GeoJsonMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
@@ -60,7 +62,7 @@ export default function GeoJsonMap({
             ? (layer as any).getBounds().getCenter()
             : (layer as any).getLatLng?.();
 
-        if (center) {
+        if (center && showLabels) {
           const isHighlighted = highlightedIndexRef.current === idx;
           const marker = L.marker(center, { icon: makeLabel(idx + 1, isHighlighted), zIndexOffset: 500 });
 

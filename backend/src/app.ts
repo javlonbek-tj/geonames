@@ -13,6 +13,7 @@ import uploadsRoutes from './modules/uploads/uploads.routes';
 import commissionRoutes from './modules/commission/commission.routes';
 import publicRoutes from './modules/public/public.routes';
 import geoFlagsRoutes from './modules/geo-flags/geo-flags.routes';
+import mapRoutes from './modules/map/map.routes';
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use('/api/uploads', uploadsRoutes);
 app.use('/api/commission', commissionRoutes);
 app.use('/api/public', publicRoutes);
 app.use('/api/geo-flags', geoFlagsRoutes);
+app.use('/api/map', mapRoutes);
 
 // Yuklangan fayllarni statik ko'rsatish (faqat autentifikatsiyalangan)
 // To'g'ridan-to'g'ri brauzerda ochilmasligi kerak bo'lsa, bu qatorni olib tashlash mumkin

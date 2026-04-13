@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Spin, Tag } from 'antd';
+import { Spin } from 'antd';
 import { ArrowLeftOutlined, ExpandOutlined, CloseOutlined } from '@ant-design/icons';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -12,6 +12,7 @@ interface GeoObject {
   nameUz: string | null;
   nameKrill: string | null;
   registryNumber: string | null;
+  soato?: string | null;
   objectType?: { nameUz: string; category?: { nameUz: string; code?: string | null } | null } | null;
   region?: { nameUz: string } | null;
   district?: { nameUz: string } | null;
@@ -48,6 +49,32 @@ function Row({ label, value }: { label: string; value?: string | null }) {
     <div className='flex gap-2 py-1.5 border-b border-gray-100 last:border-0'>
       <span className='text-xs text-gray-400 w-36 shrink-0 pt-0.5'>{label}</span>
       <span className='text-sm text-[#0f1f3d] font-medium'>{value}</span>
+    </div>
+  );
+}
+
+const COMMENT_LIMIT = 200;
+
+function CommentRow({ value }: { value?: string | null }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!value) return null;
+  const isLong = value.length > COMMENT_LIMIT;
+  const displayed = isLong && !expanded ? value.slice(0, COMMENT_LIMIT) + '...' : value;
+
+  return (
+    <div className='flex gap-2 py-1.5 border-b border-gray-100 last:border-0'>
+      <span className='text-xs text-gray-400 w-36 shrink-0 pt-0.5'>Izoh</span>
+      <span className='text-sm text-[#0f1f3d] font-medium'>
+        {displayed}
+        {isLong && (
+          <button
+            onClick={() => setExpanded((v) => !v)}
+            className='ml-1.5 text-xs text-[#1565c0] hover:underline cursor-pointer bg-transparent border-0 p-0'
+          >
+            {expanded ? 'Kamroq ko\'rsatish' : 'Ko\'proq ko\'rsatish'}
+          </button>
+        )}
+      </span>
     </div>
   );
 }
@@ -92,9 +119,9 @@ export default function GeoObjectDetailPage() {
         <h1 className='text-xl font-extrabold text-[#0f1f3d] m-0'>
           {obj.nameUz ?? "Nomi yo'q"}
         </h1>
-        {obj.registryNumber && (
-          <span className='font-mono text-xs font-bold px-2.5 py-1 rounded-lg bg-[#e8efff] text-[#1565c0]'>
-            {obj.registryNumber}
+        {obj.objectType?.nameUz && (
+          <span className='text-xs font-semibold px-2.5 py-1 rounded-lg bg-[#e8efff] text-[#1565c0]'>
+            {obj.objectType.nameUz}
           </span>
         )}
       </div>
@@ -109,6 +136,7 @@ export default function GeoObjectDetailPage() {
           <Row label="Nomi (lotin)"      value={obj.nameUz} />
           <Row label="Nomi (kirill)"     value={obj.nameKrill} />
           <Row label="Reyestr raqami"    value={obj.registryNumber} />
+          <Row label="SOATO"             value={obj.soato} />
           <Row label="Guruh"             value={obj.objectType?.category?.nameUz} />
           <Row label="Ob'yekt turi"      value={obj.objectType?.nameUz} />
           <Row label="Viloyat"           value={obj.region?.nameUz} />
@@ -116,15 +144,7 @@ export default function GeoObjectDetailPage() {
           <Row label="Tegishlilik"       value={obj.affiliation} />
           <Row label="Tarixiy nomi"      value={obj.historicalName} />
           <Row label="Me'yoriy hujjat"   value={obj.basisDocument} />
-          <Row label="Izoh"              value={obj.comment} />
-          <div className='flex gap-2 py-1.5'>
-            <span className='text-xs text-gray-400 w-36 shrink-0 pt-0.5'>Reyestrda</span>
-            {obj.existsInRegistry ? (
-              <Tag color='green' className='m-0'>Mavjud</Tag>
-            ) : (
-              <Tag color='orange' className='m-0'>Yangi</Tag>
-            )}
-          </div>
+          <CommentRow value={obj.comment} />
         </div>
 
         {/* Right — map */}

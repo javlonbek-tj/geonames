@@ -1,10 +1,10 @@
 import {
-  DashboardOutlined,
   FileTextOutlined,
   GlobalOutlined,
   TeamOutlined,
   AppstoreOutlined,
   WarningOutlined,
+  CompassOutlined,
 } from '@ant-design/icons';
 import type { UserRole } from '@/types';
 
@@ -16,12 +16,6 @@ export interface MenuItem {
 }
 
 export const menuItems: MenuItem[] = [
-  {
-    key: '/',
-    icon: <DashboardOutlined />,
-    label: 'Bosh sahifa',
-    roles: null,
-  },
   {
     key: '/applications',
     icon: <FileTextOutlined />,
@@ -51,5 +45,11 @@ export const menuItems: MenuItem[] = [
     icon: <WarningOutlined />,
     label: 'Nomuvofiqlar',
     roles: ['kadastr_agency', 'dkp_central', 'admin'],
+  },
+  {
+    key: '/map',
+    icon: <CompassOutlined />,
+    label: 'Ochiq xarita',
+    roles: ['admin'],
   },
 ];

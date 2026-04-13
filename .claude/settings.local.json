@@ -14,7 +14,9 @@
       "Bash(npx tsx:*)",
       "Bash(npx dotenv:*)",
       "Bash(PORT=3000 DATABASE_URL=\"postgresql://postgres:postgres0405tjdev@localhost:5433/geonames?schema=public\" npx tsx src/db/migrate.ts)",
-      "Bash(PGPASSWORD=postgres0405tjdev psql:*)"
+      "Bash(PGPASSWORD=postgres0405tjdev psql:*)",
+      "Bash(psql \"postgresql://postgres:postgres0405tjdev@localhost:5433/geonames\" -f drizzle/0013_clean_data.sql)",
+      "Bash(psql:*)"
     ]
   }
 }

@@ -207,20 +207,20 @@ export default function PublicLayout() {
                 Bog'lanish
               </div>
               <p className='text-sm text-white/55 leading-[1.8]'>
-                Toshkent shahri, Chilonzor tumani, Bunyodkor shoh ko'chasi, 28
+                Toshkent shahar, Chilonzor tumani, Bunyodkor shoh ko'chasi, 28
                 <br />
                 <a
-                  href='tel:+998712009090'
+                  href='tel:+998900048114'
                   className='text-white/55 hover:text-blue-300'
                 >
                   +998 90 004 81 14
                 </a>
                 <br />
                 <a
-                  href='mailto:info@geonames.uz'
+                  href='mailto:tjmr1996@gmail.com'
                   className='text-white/55 hover:text-blue-300'
                 >
-                  info@geonomlar.uz
+                  tjmr1996@gmail.com
                 </a>
               </p>
             </div>

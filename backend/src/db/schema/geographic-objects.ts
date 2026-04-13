@@ -37,10 +37,11 @@ export const geographicObjects = pgTable('geographic_objects', {
   geometry: jsonb('geometry'),
 
   registryNumber: varchar('registry_number', { length: 50 }).unique(),
+  soato: varchar('soato', { length: 20 }),
 
   // Ixtiyoriy qo'shimcha ma'lumotlar
   basisDocument: text('basis_document'),           // Yaratilish asosi hujjati
-  affiliation: varchar('affiliation', { length: 200 }), // Bog'liq ob'yekt
+  affiliation: text('affiliation'), // Bog'liq ob'yekt
   historicalName: varchar('historical_name', { length: 200 }), // Tarixiy nomi
   comment: text('comment'),                          // Izoh
 

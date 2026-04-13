@@ -1,4 +1,4 @@
-import { eq, and, count, inArray, ilike, or, SQL } from 'drizzle-orm';
+import { eq, and, count, inArray, ilike, or, SQL, asc } from 'drizzle-orm';
 import { db } from '../../db/db';
 import {
   geographicObjects,
@@ -205,6 +205,37 @@ export async function updateObjectNames(
     );
   }
 
+  // Nomuvofiqlar jadvalida xuddi shu tuman uchun bir xil nom borligini tekshirish
+  const districtId = existing[0]?.districtId;
+  if (districtId) {
+    const proposedNames = input.objects
+      .map((o) => o.nameUz?.trim().toLowerCase())
+      .filter(Boolean) as string[];
+
+    if (proposedNames.length > 0) {
+      // Shu tumandagi barcha flaglangan geo obyektlarni olamiz
+      const flaggedObjects = await db.query.geoObjectFlags.findMany({
+        with: {
+          geoObject: { columns: { nameUz: true, districtId: true } },
+        },
+      });
+
+      const conflict = flaggedObjects.find(
+        (f) =>
+          f.geoObject?.districtId === districtId &&
+          f.geoObject?.nameUz &&
+          proposedNames.includes(f.geoObject.nameUz.trim().toLowerCase()),
+      );
+
+      if (conflict) {
+        throw new AppError(
+          `"${conflict.geoObject!.nameUz}" nomi ushbu tumanda nomuvofiq deb belgilangan. Boshqa nom tanlang.`,
+          400,
+        );
+      }
+    }
+  }
+
   await db.transaction(async (tx) => {
     for (const obj of input.objects) {
       const current = existing.find((e) => e.id === obj.id)!;
@@ -281,7 +312,7 @@ export async function getRegistry(query: {
       },
       limit,
       offset,
-      orderBy: (o, { asc }) => asc(o.nameUz),
+      orderBy: [asc(geographicObjects.regionId), asc(geographicObjects.districtId), asc(geographicObjects.nameUz)],
     }),
     db.select({ total: count() }).from(geographicObjects).where(where),
   ]);

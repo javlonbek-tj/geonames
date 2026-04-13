@@ -19,6 +19,7 @@ export interface GeographicObject {
   district?: District;
   geometry: GeoJSON | null;
   registryNumber: string | null;
+  soato: string | null;
   basisDocument: string | null;
   affiliation: string | null;
   historicalName: string | null;
