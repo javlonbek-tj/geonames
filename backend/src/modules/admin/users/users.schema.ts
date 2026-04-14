@@ -10,7 +10,6 @@ const roles = [
   'regional_commission',
   'regional_hokimlik',
   'kadastr_agency',
-  'peoples_council',
 ] as const;
 
 const commissionPositions = [
@@ -29,14 +28,14 @@ const commissionPositions = [
   'geographer',
 ] as const;
 
-// Viloyat darajasidagi rollar
+// Regional roles
 const regionalRoles = [
   'dkp_regional',
   'regional_commission',
   'regional_hokimlik',
 ] as const;
 
-// Tuman darajasidagi rollar
+// District roles
 const districtRoles = [
   'dkp_filial',
   'district_commission',
@@ -47,13 +46,15 @@ export const createUserSchema = z
   .object({
     username: z
       .string()
+      .trim()
       .min(3, "Username kamida 3 ta belgi bo'lishi kerak")
       .max(50)
-      .regex(/^[a-zA-Z0-9_]+$/, "Username faqat harf, raqam va _ dan iborat bo'lishi kerak"),
-    password: z
-      .string()
-      .min(8, "Parol kamida 8 ta belgi bo'lishi kerak"),
-    fullName: z.string().min(2).max(200).optional(),
+      .regex(
+        /^[a-zA-Z0-9_]+$/,
+        "Username faqat harf, raqam va _ dan iborat bo'lishi kerak",
+      ),
+    password: z.string().min(8, "Parol kamida 8 ta belgi bo'lishi kerak"),
+    fullName: z.string().trim().min(2, "F.I.O. kamida 2 ta belgi bo'lishi kerak").max(200),
     role: z.enum(roles, { error: "Noto'g'ri rol" }),
     regionId: z.number().int().positive().optional(),
     districtId: z.number().int().positive().optional(),
@@ -66,7 +67,10 @@ export const createUserSchema = z
       }
       return true;
     },
-    { message: 'Viloyat darajasidagi rol uchun regionId majburiy', path: ['regionId'] }
+    {
+      message: 'Viloyat darajasidagi rol uchun regionId majburiy',
+      path: ['regionId'],
+    },
   )
   .refine(
     (data) => {
@@ -75,12 +79,15 @@ export const createUserSchema = z
       }
       return true;
     },
-    { message: 'Tuman darajasidagi rol uchun districtId majburiy', path: ['districtId'] }
+    {
+      message: 'Tuman darajasidagi rol uchun districtId majburiy',
+      path: ['districtId'],
+    },
   );
 
 export const updateUserSchema = z
   .object({
-    fullName: z.string().min(2).max(200).optional(),
+    fullName: z.string().trim().min(2).max(200).optional(),
     role: z.enum(roles).optional(),
     regionId: z.number().int().positive().nullable().optional(),
     districtId: z.number().int().positive().nullable().optional(),

@@ -17,9 +17,9 @@ const geometrySchema = z.looseObject({
 // existsInRegistry=true  → GeoJSON properties'dan: nameUz, nameKrill, registryNumber
 // existsInRegistry=false → nom yo'q (keyinroq workflow'da kiritiladi)
 const objectItemSchema = z.object({
-  nameUz: z.string().min(1).max(200).optional(),
-  nameKrill: z.string().max(200).optional(),
-  registryNumber: z.string().max(50).optional(),
+  nameUz: z.string().trim().min(1).max(200).optional(),
+  nameKrill: z.string().trim().max(200).optional(),
+  registryNumber: z.string().trim().max(50).optional(),
   objectTypeId: z.number().int().positive().optional(),
   geometry: geometrySchema,
 });
@@ -38,8 +38,8 @@ export const updateObjectNamesSchema = z.object({
     .array(
       z.object({
         id: z.number().int().positive(),
-        nameUz: z.string().min(1, 'Nomi kiritilishi shart').max(200),
-        nameKrill: z.string().max(200).optional(),
+        nameUz: z.string().trim().min(1, 'Nomi kiritilishi shart').max(200),
+        nameKrill: z.string().trim().max(200).optional(),
         objectTypeId: z.number().int().positive('Obyekt turi tanlanishi shart'),
       }),
     )
@@ -51,16 +51,16 @@ export const updateGeometrySchema = z.object({
 });
 
 export const updateRegistryObjectSchema = z.object({
-  nameUz: z.string().min(1).max(200).optional(),
-  nameKrill: z.string().max(200).optional(),
+  nameUz: z.string().trim().min(1).max(200).optional(),
+  nameKrill: z.string().trim().max(200).optional(),
   objectTypeId: z.number().int().positive().optional().nullable(),
   regionId: z.number().int().positive().optional(),
   districtId: z.number().int().positive().optional(),
-  registryNumber: z.string().max(50).optional().nullable(),
-  basisDocument: z.string().optional().nullable(),
-  affiliation: z.string().max(200).optional().nullable(),
-  historicalName: z.string().max(200).optional().nullable(),
-  comment: z.string().optional().nullable(),
+  registryNumber: z.string().trim().max(50).optional().nullable(),
+  basisDocument: z.string().trim().optional().nullable(),
+  affiliation: z.string().trim().max(200).optional().nullable(),
+  historicalName: z.string().trim().max(200).optional().nullable(),
+  comment: z.string().trim().optional().nullable(),
 });
 
 export type CreateGeographicObjectInput = z.infer<

@@ -19,7 +19,7 @@ export interface JwtPayload {
 
 const ACCESS_TOKEN_EXPIRES = '15m';
 const REFRESH_TOKEN_EXPIRES = '7d';
-const REFRESH_TOKEN_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000;
+export const REFRESH_TOKEN_EXPIRES_MS = 7 * 24 * 60 * 60 * 1000;
 
 export function signAccessToken(payload: JwtPayload): string {
   return jwt.sign(payload, ENV.JWT_ACCESS_SECRET, {
@@ -43,20 +43,23 @@ export function verifyRefreshToken(token: string): JwtPayload {
 
 export async function login(input: LoginInput) {
   const user = await db.query.users.findFirst({
-    where: eq(users.username, input.username),
+    where: eq(users.username, input.username.toLowerCase()),
   });
 
   if (!user || !user.isActive) {
-    throw new AppError("Username yoki parol noto'g'ri", 401);
+    throw new AppError("Login yoki parol noto'g'ri", 401);
   }
 
   if (user.isBlocked) {
-    throw new AppError("Hisobingiz bloklangan. Administrator bilan bog'laning", 403);
+    throw new AppError(
+      "Hisobingiz bloklangan. Administrator bilan bog'laning",
+      403,
+    );
   }
 
   const passwordMatch = await bcrypt.compare(input.password, user.passwordHash);
   if (!passwordMatch) {
-    throw new AppError("Username yoki parol noto'g'ri", 401);
+    throw new AppError("Login yoki parol noto'g'ri", 401);
   }
 
   const payload: JwtPayload = {

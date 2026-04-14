@@ -8,7 +8,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'strict' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 kun
+  maxAge: authService.REFRESH_TOKEN_EXPIRES_MS,
 };
 
 export async function login(req: Request, res: Response) {
@@ -40,7 +40,7 @@ export async function refresh(req: Request, res: Response) {
 
   res.status(200).json({
     status: 'success',
-    accessToken: result.accessToken,
+    data: { accessToken: result.accessToken },
   });
 }
 

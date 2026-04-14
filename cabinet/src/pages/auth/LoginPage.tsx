@@ -1,4 +1,5 @@
 import { Input, Button } from 'antd';
+import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLogin } from '@/hooks/auth/useLogin';
@@ -71,6 +72,11 @@ export default function LoginPage() {
                   autoComplete='current-password'
                   className={inputClass}
                   id='password'
+                  iconRender={(visible) =>
+                    visible
+                      ? <EyeOutlined style={{ color: '#CBDDF1' }} />
+                      : <EyeInvisibleOutlined style={{ color: '#CBDDF1' }} />
+                  }
                 />
               )}
             />

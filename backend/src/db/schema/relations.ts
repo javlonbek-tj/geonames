@@ -16,7 +16,7 @@ export const objectCategoriesRelations = relations(
   objectCategories,
   ({ many }) => ({
     objectTypes: many(objectTypes),
-  })
+  }),
 );
 
 export const objectTypesRelations = relations(objectTypes, ({ one, many }) => ({
@@ -89,7 +89,7 @@ export const geographicObjectsRelations = relations(
       fields: [geographicObjects.createdBy],
       references: [users.id],
     }),
-  })
+  }),
 );
 
 export const applicationsRelations = relations(
@@ -113,7 +113,7 @@ export const applicationsRelations = relations(
       fields: [applications.id],
       references: [publicDiscussions.applicationId],
     }),
-  })
+  }),
 );
 
 export const applicationHistoryRelations = relations(
@@ -127,19 +127,22 @@ export const applicationHistoryRelations = relations(
       fields: [applicationHistory.performedBy],
       references: [users.id],
     }),
-  })
+  }),
 );
 
-export const commissionApprovalsRelations = relations(commissionApprovals, ({ one }) => ({
-  application: one(applications, {
-    fields: [commissionApprovals.applicationId],
-    references: [applications.id],
+export const commissionApprovalsRelations = relations(
+  commissionApprovals,
+  ({ one }) => ({
+    application: one(applications, {
+      fields: [commissionApprovals.applicationId],
+      references: [applications.id],
+    }),
+    user: one(users, {
+      fields: [commissionApprovals.userId],
+      references: [users.id],
+    }),
   }),
-  user: one(users, {
-    fields: [commissionApprovals.userId],
-    references: [users.id],
-  }),
-}));
+);
 
 export const citizensRelations = relations(citizens, ({ many }) => ({
   otps: many(citizenOtps),
@@ -148,17 +151,20 @@ export const citizensRelations = relations(citizens, ({ many }) => ({
 
 export const citizenOtpsRelations = relations(citizenOtps, () => ({}));
 
-export const publicDiscussionsRelations = relations(publicDiscussions, ({ one, many }) => ({
-  application: one(applications, {
-    fields: [publicDiscussions.applicationId],
-    references: [applications.id],
+export const publicDiscussionsRelations = relations(
+  publicDiscussions,
+  ({ one, many }) => ({
+    application: one(applications, {
+      fields: [publicDiscussions.applicationId],
+      references: [applications.id],
+    }),
+    geoObject: one(geographicObjects, {
+      fields: [publicDiscussions.geoObjectId],
+      references: [geographicObjects.id],
+    }),
+    votes: many(publicVotes),
   }),
-  geoObject: one(geographicObjects, {
-    fields: [publicDiscussions.geoObjectId],
-    references: [geographicObjects.id],
-  }),
-  votes: many(publicVotes),
-}));
+);
 
 export const publicVotesRelations = relations(publicVotes, ({ one }) => ({
   discussion: one(publicDiscussions, {

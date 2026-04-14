@@ -4,7 +4,7 @@ export const performActionSchema = z.object({
   action: z.enum(['submit', 'approve', 'return', 'confirm_geometry'], {
     error: "Noto'g'ri harakat turi",
   }),
-  comment: z.string().max(2000).optional(),
+  comment: z.string().trim().max(2000).optional(),
   // Oldindan yuklangan fayllar yo'llari (upload endpointdan qaytgan paths)
   attachments: z.array(z.string()).optional(),
 });

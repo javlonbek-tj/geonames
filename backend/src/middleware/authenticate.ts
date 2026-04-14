@@ -17,49 +17,55 @@ export async function authenticate(
   res: Response,
   next: NextFunction,
 ) {
-  // 1) Token mavjudligini tekshirish
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ status: 'fail', message: 'Autentifikatsiya talab qilinadi' });
+    res
+      .status(401)
+      .json({ status: 'fail', message: 'Autentifikatsiya talab qilinadi' });
     return;
   }
 
   const token = authHeader.slice(7);
 
   try {
-    // 2) Tokenni tekshirish
     const decoded = verifyAccessToken(token);
 
-    // 3) DB dan foydalanuvchini yuklash (fresh ma'lumot)
     const [currentUser] = await db
       .select()
       .from(users)
       .where(eq(users.id, decoded.userId));
 
     if (!currentUser) {
-      res.status(401).json({ status: 'fail', message: 'Foydalanuvchi topilmadi' });
+      res
+        .status(401)
+        .json({ status: 'fail', message: 'Foydalanuvchi topilmadi' });
       return;
     }
 
-    // 4) Hisob bloklangan yoki o'chirilganmi
     if (!currentUser.isActive) {
       res.status(401).json({ status: 'fail', message: "Hisob o'chirilgan" });
       return;
     }
 
     if (currentUser.isBlocked) {
-      res.status(403).json({ status: 'fail', message: "Hisobingiz bloklangan. Administrator bilan bog'laning" });
+      res
+        .status(403)
+        .json({
+          status: 'fail',
+          message: "Hisobingiz bloklangan. Administrator bilan bog'laning",
+        });
       return;
     }
 
-    // 5) Token berilgandan keyin parol o'zgartirilganmi
     if (
       currentUser.passwordChangedAt &&
       decoded.iat != null &&
       decoded.iat < currentUser.passwordChangedAt.getTime() / 1000
     ) {
-      res.status(401).json({ status: 'fail', message: 'Token eskirgan. Qayta kiring' });
+      res
+        .status(401)
+        .json({ status: 'fail', message: 'Token eskirgan. Qayta kiring' });
       return;
     }
 
@@ -67,12 +73,15 @@ export async function authenticate(
       userId: currentUser.id,
       username: currentUser.username,
       role: currentUser.role,
+      position: currentUser.position ?? null,
       regionId: currentUser.regionId,
       districtId: currentUser.districtId,
     };
 
     next();
   } catch {
-    res.status(401).json({ status: 'fail', message: "Token yaroqsiz yoki muddati tugagan" });
+    res
+      .status(401)
+      .json({ status: 'fail', message: 'Token yaroqsiz yoki muddati tugagan' });
   }
 }

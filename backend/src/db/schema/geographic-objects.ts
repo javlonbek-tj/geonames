@@ -17,14 +17,11 @@ import { applications } from './applications';
 export const geographicObjects = pgTable('geographic_objects', {
   id: serial('id').primaryKey(),
 
-  // Bitta ariza ostidagi bir nechta ob'yektdan biri
-  applicationId: integer('application_id')
-    .references(() => applications.id),
+  applicationId: integer('application_id').references(() => applications.id),
 
   nameUz: varchar('name_uz', { length: 200 }),
   nameKrill: varchar('name_krill', { length: 200 }),
 
-  // Tuman hokimligi nom kiritish jarayonida har obyekt uchun alohida to'ldiradi
   objectTypeId: integer('object_type_id').references(() => objectTypes.id),
 
   regionId: integer('region_id')
@@ -39,11 +36,10 @@ export const geographicObjects = pgTable('geographic_objects', {
   registryNumber: varchar('registry_number', { length: 50 }).unique(),
   soato: varchar('soato', { length: 20 }),
 
-  // Ixtiyoriy qo'shimcha ma'lumotlar
-  basisDocument: text('basis_document'),           // Yaratilish asosi hujjati
-  affiliation: text('affiliation'), // Bog'liq ob'yekt
-  historicalName: varchar('historical_name', { length: 200 }), // Tarixiy nomi
-  comment: text('comment'),                          // Izoh
+  basisDocument: text('basis_document'),
+  affiliation: text('affiliation'),
+  historicalName: varchar('historical_name', { length: 200 }),
+  comment: text('comment'),
 
   existsInRegistry: boolean('exists_in_registry'),
 

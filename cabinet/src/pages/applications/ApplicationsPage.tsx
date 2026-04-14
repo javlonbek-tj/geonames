@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { Table, Tag, Select, Typography, Button, Tabs, type TableProps } from 'antd';
+import {
+  Table,
+  Tag,
+  Select,
+  Typography,
+  Button,
+  Tabs,
+  type TableProps,
+} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { useApplications } from '@/hooks/applications/useApplications';
@@ -22,7 +30,7 @@ const columns: TableProps<Application>['columns'] = [
     width: 160,
   },
   {
-    title: "Geografik ob'yektlar",
+    title: 'Geografik obyektlar',
     key: 'objects',
     render: (_, record) => {
       const objs = record.geographicObjects ?? [];
@@ -35,7 +43,8 @@ const columns: TableProps<Application>['columns'] = [
   {
     title: 'Turi',
     key: 'objectType',
-    render: (_, record) => record.geographicObjects?.[0]?.objectType?.nameUz ?? '—',
+    render: (_, record) =>
+      record.geographicObjects?.[0]?.objectType?.nameUz ?? '—',
   },
   {
     title: 'Viloyat',
@@ -45,7 +54,8 @@ const columns: TableProps<Application>['columns'] = [
   {
     title: 'Tuman',
     key: 'district',
-    render: (_, record) => record.geographicObjects?.[0]?.district?.nameUz ?? '—',
+    render: (_, record) =>
+      record.geographicObjects?.[0]?.district?.nameUz ?? '—',
   },
   {
     title: 'Holat',
@@ -88,7 +98,9 @@ export default function ApplicationsPage() {
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center justify-between'>
-        <Title level={4} className='m-0'>Arizalar</Title>
+        <Title level={4} className='m-0'>
+          Arizalar
+        </Title>
         <div className='flex items-center gap-2'>
           {user?.role === 'dkp_filial' && (
             <Button
@@ -104,7 +116,10 @@ export default function ApplicationsPage() {
             placeholder="Holat bo'yicha filter"
             options={STATUS_OPTIONS}
             value={status}
-            onChange={(val) => { setStatus(val); setPage(1); }}
+            onChange={(val) => {
+              setStatus(val);
+              setPage(1);
+            }}
             className='w-72'
           />
         </div>

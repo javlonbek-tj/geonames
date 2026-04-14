@@ -13,7 +13,7 @@ router.post('/refresh', authController.refresh);
 // POST /api/auth/logout
 router.post('/logout', authController.logout);
 
-// GET /api/auth/me  — himoyalangan
+// GET /api/auth/me  — protected
 router.get('/me', authenticate, authController.me);
 
 export default router;

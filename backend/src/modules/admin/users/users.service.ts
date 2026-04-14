@@ -3,7 +3,11 @@ import { eq, ilike, and, count, SQL } from 'drizzle-orm';
 import { db } from '../../../db/db';
 import { users } from '../../../db/schema';
 import { AppError } from '../../../utils/appError';
-import type { CreateUserInput, UpdateUserInput, ResetPasswordInput } from './users.schema';
+import type {
+  CreateUserInput,
+  UpdateUserInput,
+  ResetPasswordInput,
+} from './users.schema';
 
 const USER_SELECT = {
   id: users.id,
@@ -51,23 +55,28 @@ export async function getUsers(query: {
 }
 
 export async function getUserById(id: number) {
-  const [user] = await db.select(USER_SELECT).from(users).where(eq(users.id, id));
+  const [user] = await db
+    .select(USER_SELECT)
+    .from(users)
+    .where(eq(users.id, id));
   if (!user) throw new AppError('Foydalanuvchi topilmadi', 404);
   return user;
 }
 
 export async function createUser(input: CreateUserInput) {
+  const username = input.username.toLowerCase();
+
   const existing = await db.query.users.findFirst({
-    where: eq(users.username, input.username),
+    where: eq(users.username, username),
   });
-  if (existing) throw new AppError("Bu username allaqachon band", 409);
+  if (existing) throw new AppError('Bu username allaqachon band', 409);
 
   const passwordHash = await bcrypt.hash(input.password, 12);
 
   const [user] = await db
     .insert(users)
     .values({
-      username: input.username,
+      username,
       passwordHash,
       fullName: input.fullName,
       role: input.role,

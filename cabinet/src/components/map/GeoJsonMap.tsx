@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 
 interface GeoJsonMapProps {
@@ -12,6 +12,13 @@ interface GeoJsonMapProps {
 
 const DEFAULT_STYLE: L.PathOptions = { color: '#1677ff', weight: 2.5, opacity: 0.8, fillOpacity: 0.12 };
 const HIGHLIGHT_STYLE: L.PathOptions = { color: '#fa8c16', weight: 4, opacity: 1, fillOpacity: 0.35 };
+
+const TILES = {
+  osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+} as const;
+
+type TileKey = keyof typeof TILES;
 
 function makeLabel(n: number, highlighted: boolean) {
   const bg = highlighted ? '#fa8c16' : '#1677ff';
@@ -31,9 +38,11 @@ export default function GeoJsonMap({
 }: GeoJsonMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const layersRef = useRef<L.Path[]>([]);
   const labelMarkersRef = useRef<L.Marker[]>([]);
   const highlightedIndexRef = useRef<number | null | undefined>(highlightedIndex);
+  const [tileKey, setTileKey] = useState<TileKey>('osm');
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -41,12 +50,10 @@ export default function GeoJsonMap({
     layersRef.current = [];
     labelMarkersRef.current = [];
 
-    const map = L.map(containerRef.current);
+    const map = L.map(containerRef.current, { attributionControl: false });
     mapRef.current = map;
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors',
-    }).addTo(map);
+    tileLayerRef.current = L.tileLayer(TILES[tileKey], {}).addTo(map);
 
     const paths: L.Path[] = [];
     const markers: L.Marker[] = [];
@@ -98,8 +105,19 @@ export default function GeoJsonMap({
       map.setView([41.2995, 69.2401], 7);
     }
 
-    return () => { map.remove(); mapRef.current = null; layersRef.current = []; labelMarkersRef.current = []; };
+    return () => { map.remove(); mapRef.current = null; tileLayerRef.current = null; layersRef.current = []; labelMarkersRef.current = []; };
   }, [geojson]);
+
+  // Tile layer switch
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
+    const options: L.TileLayerOptions = {};
+    if (tileKey === 'satellite') options.maxNativeZoom = 17;
+    tileLayerRef.current = L.tileLayer(TILES[tileKey], options).addTo(map);
+    tileLayerRef.current.bringToBack();
+  }, [tileKey]);
 
   useEffect(() => {
     highlightedIndexRef.current = highlightedIndex;
@@ -111,5 +129,27 @@ export default function GeoJsonMap({
     });
   }, [highlightedIndex]);
 
-  return <div ref={containerRef} style={{ height }} className='w-full rounded-lg z-0' />;
+  return (
+    <div className="relative w-full rounded-lg overflow-hidden z-0" style={{ height }}>
+      <div ref={containerRef} className="w-full h-full" />
+      <div className="absolute bottom-3 right-3 z-[1000] flex rounded-lg overflow-hidden shadow border border-gray-200 text-xs font-medium">
+        <button
+          onClick={() => setTileKey('osm')}
+          className={`px-3 py-1.5 cursor-pointer transition-colors ${
+            tileKey === 'osm' ? 'bg-[#1677ff] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          Xarita
+        </button>
+        <button
+          onClick={() => setTileKey('satellite')}
+          className={`px-3 py-1.5 cursor-pointer transition-colors border-l border-gray-200 ${
+            tileKey === 'satellite' ? 'bg-[#1677ff] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+          }`}
+        >
+          Satellite
+        </button>
+      </div>
+    </div>
+  );
 }

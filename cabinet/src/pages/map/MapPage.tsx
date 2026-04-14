@@ -61,7 +61,7 @@ export default function MapPage() {
   ];
 
   return (
-    <div className="flex h-full gap-0" style={{ height: 'calc(100vh - 112px)' }}>
+    <div className="-m-6 flex" style={{ height: 'calc(100vh - 112px)' }}>
       {/* Sidebar */}
       <div className="w-72 shrink-0 bg-white border-r border-gray-100 p-4 overflow-y-auto flex flex-col">
         <MapFilterPanel
@@ -83,9 +83,8 @@ export default function MapPage() {
 
         {/* Loading overlay */}
         {isLoading && (
-          <div className="absolute top-3 right-3 z-[1000] bg-white/90 rounded-lg px-3 py-2 shadow-sm flex items-center gap-2 text-xs text-gray-500">
-            <Spin size="small" />
-            Yuklanmoqda...
+          <div className="absolute inset-0 z-[1000] flex items-center justify-center pointer-events-none">
+            <Spin size="large" />
           </div>
         )}
 

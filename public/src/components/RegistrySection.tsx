@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Select, Pagination, Spin, Tooltip } from 'antd';
-import { SearchOutlined, ClearOutlined, CopyOutlined, CheckOutlined } from '@ant-design/icons';
+import { SearchOutlined, ClearOutlined, CopyOutlined, CheckOutlined, CloseCircleFilled } from '@ant-design/icons';
 import { publicApi, type RegistryParams } from '@/api/public.api';
 
 const DEFAULT_LIMIT = 10;
@@ -133,12 +133,23 @@ export default function RegistrySection() {
                 style={{ fontSize: 14 }}
               />
               <input
-                className='w-full h-9 pl-8 pr-3 rounded-lg border border-[#d1d9e8] text-sm bg-white outline-none focus:border-blue-500 transition-colors'
+                className='w-full h-9 pl-8 pr-8 rounded-lg border border-[#d1d9e8] text-sm bg-white outline-none focus:border-blue-500 transition-colors'
                 placeholder="Nom yoki reyestr raqami bo'yicha..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && applySearch()}
               />
+              {searchInput && (
+                <button
+                  onClick={() => {
+                    setSearchInput('');
+                    setFilters((f) => ({ ...f, page: 1, search: undefined }));
+                  }}
+                  className='absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors cursor-pointer border-0 bg-transparent p-0 leading-none'
+                >
+                  <CloseCircleFilled style={{ fontSize: 14 }} />
+                </button>
+              )}
             </div>
           </div>
 

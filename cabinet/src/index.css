@@ -38,3 +38,78 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.map-tooltip {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #1e293b !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-shadow:
+    1px 1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px -1px 0 #fff,
+    0 1px 0 #fff,
+    0 -1px 0 #fff,
+    1px 0 0 #fff,
+    -1px 0 0 #fff !important;
+  white-space: nowrap;
+}
+
+.map-tooltip::before {
+  display: none !important;
+}
+
+.map-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #1e293b !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-shadow:
+    1px 1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px -1px 0 #fff,
+    0 1px 0 #fff,
+    0 -1px 0 #fff,
+    1px 0 0 #fff,
+    -1px 0 0 #fff !important;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.map-label::before {
+  display: none !important;
+}
+
+.map-street-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #4c1d95 !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  text-shadow:
+    1px 1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px -1px 0 #fff !important;
+  white-space: nowrap;
+  pointer-events: none;
+  display: none !important;
+}
+
+.zoom-street-labels .map-street-label {
+  display: block !important;
+}
+
+.map-street-label::before {
+  display: none !important;
+}

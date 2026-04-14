@@ -64,7 +64,11 @@ export default function ObjectTypesPage() {
     setCatModal({ mode: 'create' });
   };
   const openEditCat = (item: ObjectCategory) => {
-    catForm.setFieldsValue({ code: item.code, nameUz: item.nameUz, nameKrill: item.nameKrill });
+    catForm.setFieldsValue({
+      code: item.code,
+      nameUz: item.nameUz,
+      nameKrill: item.nameKrill,
+    });
     setCatModal({ mode: 'edit', item });
   };
   const closeCatModal = () => {
@@ -124,7 +128,11 @@ export default function ObjectTypesPage() {
           }
         >
           <span className='flex items-center gap-2'>
-            {c.code && <Tag color='blue' className='m-0 font-mono text-xs'>{c.code}</Tag>}
+            {c.code && (
+              <Tag color='blue' className='m-0 font-mono text-xs'>
+                {c.code}
+              </Tag>
+            )}
             {c.nameUz}
           </span>
           {c.nameKrill && (
@@ -303,9 +311,14 @@ export default function ObjectTypesPage() {
           <Form.Item
             label='Kod'
             name='code'
-            extra='Qisqa kod, masalan: APU, SUV, YOL'
+            rules={[{ required: true, message: 'Kod kiritilishi shart' }]}
+            extra='Qisqa kod, masalan: APU, MHU, MTU'
           >
-            <Input placeholder='APU' style={{ fontFamily: 'monospace' }} maxLength={20} />
+            <Input
+              placeholder='APU'
+              style={{ fontFamily: 'monospace' }}
+              maxLength={20}
+            />
           </Form.Item>
           <Form.Item
             label='Nomi (lotin)'

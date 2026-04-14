@@ -79,7 +79,7 @@ export async function getRegionGeometries() {
         geometry: r.geometry,
         properties: {
           id: r.id,
-          nameUz: r.nameUz ?? r.regionName,
+          nameUz: r.regionName ?? r.nameUz,
           soato: r.soato,
           regionId: r.regionId,
           districtId: r.districtId,
@@ -126,7 +126,7 @@ export async function getDistrictGeometries(regionId: number) {
         geometry: r.geometry,
         properties: {
           id: r.id,
-          nameUz: r.nameUz ?? r.districtName,
+          nameUz: r.districtName ?? r.nameUz,
           soato: r.soato,
           regionId: r.regionId,
           districtId: r.districtId,

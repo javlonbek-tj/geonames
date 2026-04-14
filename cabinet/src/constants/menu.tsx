@@ -37,7 +37,7 @@ export const menuItems: MenuItem[] = [
   {
     key: '/admin/object-types',
     icon: <AppstoreOutlined />,
-    label: "Ob'yekt turlari",
+    label: 'Obyekt turlari',
     roles: ['admin'],
   },
   {

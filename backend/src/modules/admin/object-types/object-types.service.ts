@@ -9,7 +9,7 @@ import type {
   UpdateTypeInput,
 } from './object-types.schema';
 
-// ─── Kategoriyalar ────────────────────────────────────────────────────────────
+// ─── Categories ────────────────────────────────────────────────────────────
 
 export async function getCategories() {
   return db.query.objectCategories.findMany({
@@ -57,7 +57,7 @@ export async function deleteCategory(id: number) {
   if (!deleted) throw new AppError('Kategoriya topilmadi', 404);
 }
 
-// ─── Turlar ───────────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export async function getTypes(categoryId?: number) {
   return db.query.objectTypes.findMany({

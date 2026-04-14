@@ -8,7 +8,7 @@ import {
 } from './object-types.schema';
 import { AppError } from '../../../utils/appError';
 
-// ─── Kategoriyalar ────────────────────────────────────────────────────────────
+// ─── Categoies ────────────────────────────────────────────────────────────
 
 export async function getCategories(_req: Request, res: Response) {
   const data = await service.getCategories();
@@ -36,7 +36,7 @@ export async function deleteCategory(req: Request, res: Response) {
   res.status(204).send();
 }
 
-// ─── Turlar ───────────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export async function getTypes(req: Request, res: Response) {
   const categoryId = req.query.categoryId

@@ -127,14 +127,14 @@ export async function createGeographicObjects(
     const missingReg = input.objects.some((o) => !o.registryNumber?.trim());
     if (missingReg) {
       throw new AppError(
-        "Reestrdа mavjud ob'yektlar uchun reyestr raqami kiritilishi shart",
+        'Reestrdа mavjud obyektlar uchun reyestr raqami kiritilishi shart',
         400,
       );
     }
     const missingType = input.objects.some((o) => !o.objectTypeId);
     if (missingType) {
       throw new AppError(
-        "Reestrdа mavjud ob'yektlar uchun obyekt turi (object_type_id) kiritilishi shart",
+        'Reestrdа mavjud obyektlar uchun obyekt turi (object_type_id) kiritilishi shart',
         400,
       );
     }
@@ -312,7 +312,11 @@ export async function getRegistry(query: {
       },
       limit,
       offset,
-      orderBy: [asc(geographicObjects.regionId), asc(geographicObjects.districtId), asc(geographicObjects.nameUz)],
+      orderBy: [
+        asc(geographicObjects.regionId),
+        asc(geographicObjects.districtId),
+        asc(geographicObjects.nameUz),
+      ],
     }),
     db.select({ total: count() }).from(geographicObjects).where(where),
   ]);
@@ -366,7 +370,7 @@ export async function updateGeometry(
   if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
   if (obj.createdBy !== user.userId) {
     throw new AppError(
-      "Siz faqat o'z ob'yektlaringizni tahrirlashingiz mumkin",
+      "Siz faqat o'z obyektlaringizni tahrirlashingiz mumkin",
       403,
     );
   }

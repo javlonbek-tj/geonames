@@ -78,6 +78,13 @@
       "when": 1776075434072,
       "tag": "0010_add_soato_to_geographic_objects",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1776171097558,
+      "tag": "0011_futuristic_ben_parker",
+      "breakpoints": true
     }
   ]
 }

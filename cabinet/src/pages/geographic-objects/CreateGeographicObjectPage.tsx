@@ -1,6 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Card, Form, Switch, Button, Typography, Upload, Alert, Tag,
+  Card,
+  Form,
+  Switch,
+  Button,
+  Typography,
+  Upload,
+  Alert,
+  Tag,
 } from 'antd';
 import { InboxOutlined, DeleteOutlined, FileOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
@@ -35,25 +42,44 @@ function validateAndExtract(
       : [geojson];
 
   return features.map((f: GeoJSON, i: number) => {
-    const props: Record<string, unknown> = f.type === 'Feature' ? (f.properties ?? {}) : {};
+    const props: Record<string, unknown> =
+      f.type === 'Feature' ? (f.properties ?? {}) : {};
     const rawGeom: GeoJSON = f.type === 'Feature' ? f.geometry : f;
 
-    const nameUz = (props.name_uz ?? props.nameUz ?? props.name ?? null) as string | null;
-    const nameKrill = (props.name_krill ?? props.nameKrill ?? null) as string | null;
-    const registryNumber = (props.registry_number ?? props.registryNumber ?? props.reg_number ?? null) as string | null;
-    const rawTypeId = props.object_type_id ?? props.objectTypeId ?? props.type_id ?? props.objectType ?? null;
-    const objectTypeId = rawTypeId != null && !isNaN(Number(rawTypeId)) ? Number(rawTypeId) : null;
+    const nameUz = (props.name_uz ?? props.nameUz ?? props.name ?? null) as
+      | string
+      | null;
+    const nameKrill = (props.name_krill ?? props.nameKrill ?? null) as
+      | string
+      | null;
+    const registryNumber = (props.registry_number ??
+      props.registryNumber ??
+      props.reg_number ??
+      null) as string | null;
+    const rawTypeId =
+      props.object_type_id ??
+      props.objectTypeId ??
+      props.type_id ??
+      props.objectType ??
+      null;
+    const objectTypeId =
+      rawTypeId != null && !isNaN(Number(rawTypeId)) ? Number(rawTypeId) : null;
 
     const errors: string[] = [];
     if (existsInRegistry) {
-      if (!registryNumber) errors.push("registry_number properties'da topilmadi");
+      if (!registryNumber)
+        errors.push("registry_number properties'da topilmadi");
       if (!nameUz) errors.push("name_uz properties'da topilmadi");
       if (!objectTypeId) {
         errors.push("object_type_id properties'da topilmadi");
       } else if (validTypeIds.size > 0 && !validTypeIds.has(objectTypeId)) {
         errors.push(`object_type_id=${objectTypeId} bazada topilmadi`);
       }
-    } else if (objectTypeId && validTypeIds.size > 0 && !validTypeIds.has(objectTypeId)) {
+    } else if (
+      objectTypeId &&
+      validTypeIds.size > 0 &&
+      !validTypeIds.has(objectTypeId)
+    ) {
       // Reyestrda yo'q ob'yektlarda ham noto'g'ri ID bo'lsa xabar ber
       errors.push(`object_type_id=${objectTypeId} bazada topilmadi`);
     }
@@ -87,14 +113,20 @@ export default function CreateGeographicObjectPage() {
   const user = useAuthStore((s) => s.user);
   const { mutate: create, isPending } = useCreateGeographicObject();
   const { data: allObjectTypes = [] } = useObjectTypes();
-  const validTypeIds = useMemo(() => new Set(allObjectTypes.map((t) => t.id)), [allObjectTypes]);
+  const validTypeIds = useMemo(
+    () => new Set(allObjectTypes.map((t) => t.id)),
+    [allObjectTypes],
+  );
 
   const [form] = Form.useForm();
   const [existsInRegistry, setExistsInRegistry] = useState(false);
   const [objects, setObjects] = useState<ObjectRow[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
-  const lastParsedRef = useRef<{ geojson: GeoJSON; existsInRegistry: boolean } | null>(null);
+  const lastParsedRef = useRef<{
+    geojson: GeoJSON;
+    existsInRegistry: boolean;
+  } | null>(null);
 
   // objectTypes yuklanib bo'lganda, yuklangan fayl bor bo'lsa qayta validate qil
   useEffect(() => {
@@ -135,7 +167,9 @@ export default function CreateGeographicObjectPage() {
     setExistsInRegistry(val);
     if (lastParsedRef.current) {
       lastParsedRef.current.existsInRegistry = val;
-      setObjects(validateAndExtract(lastParsedRef.current.geojson, val, validTypeIds));
+      setObjects(
+        validateAndExtract(lastParsedRef.current.geojson, val, validTypeIds),
+      );
     } else {
       setObjects([]);
       setParseError(null);
@@ -148,13 +182,13 @@ export default function CreateGeographicObjectPage() {
   const allErrors = objects.some((o) => o.errors.length > 0);
   const fileLoaded = !!fileName;
   const mapGeojson = useMemo(
-    () => objects.length > 0 ? buildFeatureCollection(objects) : null,
+    () => (objects.length > 0 ? buildFeatureCollection(objects) : null),
     [objects],
   );
 
   const onFinish = (values: { existsInRegistry: boolean }) => {
     if (objects.length === 0) {
-      setParseError("GeoJSON fayl yuklanishi shart");
+      setParseError('GeoJSON fayl yuklanishi shart');
       return;
     }
     if (allErrors) return;
@@ -177,13 +211,15 @@ export default function CreateGeographicObjectPage() {
     return (
       <div className='flex flex-col gap-4 max-w-5xl'>
         <div className='flex items-center justify-between'>
-          <Title level={4} className='m-0'>Yangi ariza — geometriya yuklash</Title>
+          <Title level={4} className='m-0'>
+            Yangi ariza — geometriya yuklash
+          </Title>
           <Button onClick={() => void navigate('/applications')}>Orqaga</Button>
         </div>
         <Alert
           type='error'
           showIcon
-          message="Viloyat va tuman biriktirilmagan"
+          message='Viloyat va tuman biriktirilmagan'
           description="Sizning profilingizga viloyat va tuman biriktirilmagan. Ariza yaratish uchun administrator bilan bog'laning."
         />
       </div>
@@ -193,16 +229,26 @@ export default function CreateGeographicObjectPage() {
   return (
     <div className='flex flex-col gap-4 max-w-5xl'>
       <div className='flex items-center justify-between'>
-        <Title level={4} className='m-0'>Yangi ariza — geometriya yuklash</Title>
+        <Title level={4} className='m-0'>
+          Yangi ariza — geometriya yuklash
+        </Title>
         <Button onClick={() => void navigate('/applications')}>Orqaga</Button>
       </div>
 
       <div className='grid grid-cols-1 lg:grid-cols-5 gap-4 items-start'>
-
         {/* Chap: umumiy */}
         <Card title="Umumiy ma'lumotlar" size='small' className='lg:col-span-2'>
-          <Form form={form} layout='vertical' initialValues={{ existsInRegistry: false }} onFinish={onFinish}>
-            <Form.Item label="Reestrdа mavjudmi?" name='existsInRegistry' valuePropName='checked'>
+          <Form
+            form={form}
+            layout='vertical'
+            initialValues={{ existsInRegistry: false }}
+            onFinish={onFinish}
+          >
+            <Form.Item
+              label='Reestrdа mavjudmi?'
+              name='existsInRegistry'
+              valuePropName='checked'
+            >
               <Switch
                 checkedChildren='Ha'
                 unCheckedChildren="Yo'q"
@@ -214,12 +260,16 @@ export default function CreateGeographicObjectPage() {
 
         {/* O'ng: fayl + xarita */}
         <div className='lg:col-span-3 flex flex-col gap-4'>
-
           {/* Fayl yuklash — faqat fayl yuklanmagan bo'lsa */}
           {!fileLoaded && (
             <Card title='GeoJSON fayl yuklash' size='small'>
               {parseError && (
-                <Alert message={parseError} type='error' showIcon className='mb-3' />
+                <Alert
+                  message={parseError}
+                  type='error'
+                  showIcon
+                  className='mb-3'
+                />
               )}
               <Dragger
                 accept='.geojson,.json'
@@ -227,8 +277,12 @@ export default function CreateGeographicObjectPage() {
                 maxCount={1}
                 showUploadList={false}
               >
-                <p className='ant-upload-drag-icon'><InboxOutlined /></p>
-                <p className='ant-upload-text'>Faylni bu yerga tashlang yoki bosing</p>
+                <p className='ant-upload-drag-icon'>
+                  <InboxOutlined />
+                </p>
+                <p className='ant-upload-text'>
+                  Faylni bu yerga tashlang yoki bosing
+                </p>
               </Dragger>
             </Card>
           )}
@@ -241,8 +295,12 @@ export default function CreateGeographicObjectPage() {
               className='overflow-hidden'
               extra={
                 <span className='flex items-center gap-2'>
-                  {validCount > 0 && <Tag color='green'>{validCount} ta tayyor</Tag>}
-                  {errorCount > 0 && <Tag color='red'>{errorCount} ta xatolik</Tag>}
+                  {validCount > 0 && (
+                    <Tag color='green'>{validCount} ta tayyor</Tag>
+                  )}
+                  {errorCount > 0 && (
+                    <Tag color='red'>{errorCount} ta xatolik</Tag>
+                  )}
                 </span>
               }
             >
@@ -265,7 +323,7 @@ export default function CreateGeographicObjectPage() {
                   type='error'
                   showIcon
                   className='mb-3'
-                  message={`${errorCount} ta ob'yektda majburiy maydonlar to'ldirilmagan`}
+                  message={`${errorCount} ta obyektda majburiy maydonlar to'ldirilmagan`}
                 />
               )}
 
@@ -291,7 +349,12 @@ export default function CreateGeographicObjectPage() {
           {fileLoaded && !mapGeojson && (
             <Card size='small'>
               {parseError && (
-                <Alert message={parseError} type='error' showIcon className='mb-3' />
+                <Alert
+                  message={parseError}
+                  type='error'
+                  showIcon
+                  className='mb-3'
+                />
               )}
               <div className='flex items-center gap-2 p-2 bg-gray-50 rounded border border-gray-200'>
                 <FileOutlined className='text-red-500' />
@@ -308,7 +371,6 @@ export default function CreateGeographicObjectPage() {
             </Card>
           )}
         </div>
-
       </div>
     </div>
   );

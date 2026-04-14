@@ -149,17 +149,26 @@ export default function ApplicationDetailPage() {
   const { mutate: revokeApproval, isPending: isRevoking } =
     useRevokeCommissionApproval(appId);
 
-  const isKadastrFlagStep = app?.currentStatus === 'step_5_dkp_central' && user?.role === 'dkp_central';
+  const isKadastrFlagStep =
+    app?.currentStatus === 'step_5_dkp_central' && user?.role === 'dkp_central';
   const FLAG_VISIBLE_STATUSES = [
     'step_6_kadastr_agency_final',
     'step_7_regional_hokimlik',
     'step_8_district_hokimlik',
     'completed',
   ];
-  const canViewFlags = !isKadastrFlagStep && !!app?.currentStatus && FLAG_VISIBLE_STATUSES.includes(app.currentStatus);
-  const { data: geoFlags = [] } = useApplicationFlags((isKadastrFlagStep || canViewFlags) ? appId : 0);
-  const { mutate: toggleFlag, isPending: isTogglingFlag } = useToggleGeoFlag(appId);
-  const [flagModal, setFlagModal] = useState<{ geoObjectId: number } | null>(null);
+  const canViewFlags =
+    !isKadastrFlagStep &&
+    !!app?.currentStatus &&
+    FLAG_VISIBLE_STATUSES.includes(app.currentStatus);
+  const { data: geoFlags = [] } = useApplicationFlags(
+    isKadastrFlagStep || canViewFlags ? appId : 0,
+  );
+  const { mutate: toggleFlag, isPending: isTogglingFlag } =
+    useToggleGeoFlag(appId);
+  const [flagModal, setFlagModal] = useState<{ geoObjectId: number } | null>(
+    null,
+  );
   const [flagComment, setFlagComment] = useState('');
   const [rejectModal, setRejectModal] = useState(false);
   const [rejectComment, setRejectComment] = useState('');
@@ -500,7 +509,7 @@ export default function ApplicationDetailPage() {
               <Descriptions.Item label='Viloyat'>
                 {firstGeo?.region?.nameUz ?? '—'}
               </Descriptions.Item>
-              <Descriptions.Item label="Ob'yektlar soni">
+              <Descriptions.Item label='Obyektlar soni'>
                 {geoObjects.length} ta
               </Descriptions.Item>
               <Descriptions.Item label='Tuman'>
@@ -514,7 +523,7 @@ export default function ApplicationDetailPage() {
 
           {/* Geografik ob'yektlar */}
           <Card
-            title={`Geografik ob'yektlar (${geoObjects.length} ta)`}
+            title={`Geografik obyektlar (${geoObjects.length} ta)`}
             size='small'
             extra={
               canEnterNames && (
@@ -544,7 +553,7 @@ export default function ApplicationDetailPage() {
               pagination={false}
               size='small'
               rowKey='id'
-              locale={{ emptyText: "Ob'yektlar mavjud emas" }}
+              locale={{ emptyText: 'Obyektlar mavjud emas' }}
               scroll={
                 existsInRegistry === false && !canEnterNames
                   ? undefined
@@ -570,7 +579,11 @@ export default function ApplicationDetailPage() {
               extra={
                 <Space size={8}>
                   {canDownloadGeoJson && (
-                    <Button size='small' icon={<DownloadOutlined />} onClick={handleDownloadGeoJson}>
+                    <Button
+                      size='small'
+                      icon={<DownloadOutlined />}
+                      onClick={handleDownloadGeoJson}
+                    >
                       GeoJSON yuklab olish
                     </Button>
                   )}
@@ -609,14 +622,18 @@ export default function ApplicationDetailPage() {
                       color:
                         h.actionType === 'approve'
                           ? 'green'
-                          : h.actionType === 'return' || h.actionType === 'reject'
+                          : h.actionType === 'return' ||
+                              h.actionType === 'reject'
                             ? 'red'
                             : 'blue',
                       children: (
                         <div className='flex flex-col gap-0.5'>
                           <div className='flex items-center gap-2 flex-wrap'>
                             <Text strong>{statusLabel}</Text>
-                            <Tag color={ACTION_COLORS[h.actionType]} className='m-0'>
+                            <Tag
+                              color={ACTION_COLORS[h.actionType]}
+                              className='m-0'
+                            >
                               {ACTION_LABELS[h.actionType] ?? h.actionType}
                             </Tag>
                             <Text type='secondary' className='text-xs'>
@@ -637,29 +654,50 @@ export default function ApplicationDetailPage() {
                     };
                   }),
                   // Joriy holat — completed/rejected bo'lmasa ko'rsatiladi
-                  ...(app.currentStatus && app.currentStatus !== 'completed' && app.currentStatus !== 'rejected'
-                    ? [{
-                        key: 'current',
-                        dot: <ClockCircleOutlined style={{ fontSize: 14, color: '#fa8c16' }} />,
-                        color: 'orange' as const,
-                        children: (
-                          <div className='flex flex-col gap-0.5'>
-                            <div className='flex items-center gap-2 flex-wrap'>
-                              <Text strong style={{ color: '#fa8c16' }}>
-                                {STATUS_LABELS[app.currentStatus as ApplicationStatus]}
-                              </Text>
-                              <Tag color='orange' className='m-0'>Kutilmoqda</Tag>
+                  ...(app.currentStatus &&
+                  app.currentStatus !== 'completed' &&
+                  app.currentStatus !== 'rejected'
+                    ? [
+                        {
+                          key: 'current',
+                          dot: (
+                            <ClockCircleOutlined
+                              style={{ fontSize: 14, color: '#fa8c16' }}
+                            />
+                          ),
+                          color: 'orange' as const,
+                          children: (
+                            <div className='flex flex-col gap-0.5'>
+                              <div className='flex items-center gap-2 flex-wrap'>
+                                <Text strong style={{ color: '#fa8c16' }}>
+                                  {
+                                    STATUS_LABELS[
+                                      app.currentStatus as ApplicationStatus
+                                    ]
+                                  }
+                                </Text>
+                                <Tag color='orange' className='m-0'>
+                                  Kutilmoqda
+                                </Tag>
+                              </div>
+                              {STATUS_HOLDER[
+                                app.currentStatus as ApplicationStatus
+                              ] && (
+                                <Text type='secondary' className='text-xs'>
+                                  Hozir kimda:{' '}
+                                  <span className='font-medium text-gray-700'>
+                                    {
+                                      STATUS_HOLDER[
+                                        app.currentStatus as ApplicationStatus
+                                      ]
+                                    }
+                                  </span>
+                                </Text>
+                              )}
                             </div>
-                            {STATUS_HOLDER[app.currentStatus as ApplicationStatus] && (
-                              <Text type='secondary' className='text-xs'>
-                                Hozir kimda: <span className='font-medium text-gray-700'>
-                                  {STATUS_HOLDER[app.currentStatus as ApplicationStatus]}
-                                </span>
-                              </Text>
-                            )}
-                          </div>
-                        ),
-                      }]
+                          ),
+                        },
+                      ]
                     : []),
                 ]}
               />
@@ -872,7 +910,10 @@ export default function ApplicationDetailPage() {
             onOk={() => {
               if (!flagModal) return;
               toggleFlag(
-                { geoObjectId: flagModal.geoObjectId, comment: flagComment.trim() || undefined },
+                {
+                  geoObjectId: flagModal.geoObjectId,
+                  comment: flagComment.trim() || undefined,
+                },
                 { onSuccess: () => setFlagModal(null) },
               );
             }}
@@ -930,10 +971,10 @@ export default function ApplicationDetailPage() {
                   className='mb-3'
                   message={
                     needsDocumentUpload
-                      ? "Yakunlash uchun avval Kengash qarorining PDF nusxasini yuklang"
+                      ? 'Yakunlash uchun avval Kengash qarorining PDF nusxasini yuklang'
                       : hasUnsavedEdits && allNamed
                         ? "Nomlarni saqlang, so'ng yuborishingiz mumkin"
-                        : "Barcha ob'yektlarga lotin va kirill nomlar berilib, saqlangunga qadar yuborish mumkin emas"
+                        : 'Barcha obyektlarga lotin va kirill nomlar berilib, saqlangunga qadar yuborish mumkin emas'
                   }
                 />
               )}
@@ -1040,12 +1081,19 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-
       {/* Fullscreen map */}
       {mapFullscreen && mapGeojson && (
-        <div className='fixed inset-0 z-[9999] flex flex-col' style={{ background: '#000' }}>
-          <div className='flex items-center justify-between px-4 py-3 shrink-0' style={{ background: '#0f1f3d' }}>
-            <span className='text-white font-semibold text-sm'>{app.applicationNumber} — Xaritada ko'rish</span>
+        <div
+          className='fixed inset-0 z-[9999] flex flex-col'
+          style={{ background: '#000' }}
+        >
+          <div
+            className='flex items-center justify-between px-4 py-3 shrink-0'
+            style={{ background: '#0f1f3d' }}
+          >
+            <span className='text-white font-semibold text-sm'>
+              {app.applicationNumber} — Xaritada ko'rish
+            </span>
             <button
               onClick={() => setMapFullscreen(false)}
               className='w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0 transition-colors'
@@ -1055,7 +1103,11 @@ export default function ApplicationDetailPage() {
             </button>
           </div>
           <div className='flex-1'>
-            <GeoJsonMap geojson={mapGeojson} height='100%' highlightedIndex={activeGeoIdx} />
+            <GeoJsonMap
+              geojson={mapGeojson}
+              height='100%'
+              highlightedIndex={activeGeoIdx}
+            />
           </div>
         </div>
       )}

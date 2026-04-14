@@ -60,6 +60,9 @@ export default function UsersPage() {
       role: user.role,
       regionId: user.regionId,
       districtId: user.districtId,
+      position: user.position,
+      isActive: user.isActive,
+      isBlocked: user.isBlocked,
     });
     setModal({ mode: 'edit', user });
   };
@@ -267,7 +270,14 @@ export default function UsersPage() {
               </>
             )}
 
-            <Form.Item label='F.I.O.' name='fullName'>
+            <Form.Item
+              label='F.I.O.'
+              name='fullName'
+              rules={[
+                { required: modal?.mode === 'create', message: "F.I.O. kiritilishi shart" },
+                { min: 2, message: "F.I.O. kamida 2 ta belgi bo'lishi kerak" },
+              ]}
+            >
               <Input placeholder="To'liq ism" />
             </Form.Item>
 
