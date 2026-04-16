@@ -3,14 +3,16 @@ import {
   Table,
   Tag,
   Select,
+  Input,
   Typography,
   Button,
   Tabs,
   type TableProps,
 } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router';
 import { useApplications } from '@/hooks/applications/useApplications';
+import { useRegions, useDistricts } from '@/hooks/locations/useLocations';
 import { useAuthStore } from '@/store/authStore';
 import { STATUS_LABELS, STATUS_COLORS } from '@/constants';
 import type { Application, ApplicationStatus } from '@/types';
@@ -27,7 +29,7 @@ const columns: TableProps<Application>['columns'] = [
     title: 'Ariza raqami',
     dataIndex: 'applicationNumber',
     key: 'applicationNumber',
-    width: 160,
+    width: 180,
   },
   {
     title: 'Geografik obyektlar',
@@ -75,24 +77,48 @@ const columns: TableProps<Application>['columns'] = [
   },
 ];
 
+const REGIONAL_ROLES = ['dkp_regional', 'regional_commission', 'regional_hokimlik'];
+
 export default function ApplicationsPage() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const [tab, setTab] = useState<'active' | 'history'>('active');
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | undefined>(undefined);
+  const [applicationNumber, setApplicationNumber] = useState<string | undefined>(undefined);
+  const [regionId, setRegionId] = useState<number | undefined>(undefined);
+  const [districtId, setDistrictId] = useState<number | undefined>(undefined);
+
+  const isAdmin = user?.role === 'admin';
+  const isRegional = REGIONAL_ROLES.includes(user?.role ?? '');
+
+  // Admin sees region select; regional roles see district select within their region
+  const { data: regions } = useRegions();
+  const { data: districts } = useDistricts(
+    isAdmin ? regionId : (user?.regionId ?? undefined),
+  );
 
   const { data, isLoading } = useApplications({
     page,
     limit: 10,
     status,
     tab: tab === 'history' ? 'history' : undefined,
+    applicationNumber: applicationNumber || undefined,
+    regionId: isAdmin ? regionId : undefined,
+    districtId: isAdmin || isRegional ? districtId : undefined,
   });
+
+  const resetFilters = () => {
+    setStatus(undefined);
+    setApplicationNumber(undefined);
+    setRegionId(undefined);
+    setDistrictId(undefined);
+    setPage(1);
+  };
 
   const handleTabChange = (key: string) => {
     setTab(key as 'active' | 'history');
-    setPage(1);
-    setStatus(undefined);
+    resetFilters();
   };
 
   return (
@@ -101,28 +127,66 @@ export default function ApplicationsPage() {
         <Title level={4} className='m-0'>
           Arizalar
         </Title>
-        <div className='flex items-center gap-2'>
-          {user?.role === 'dkp_filial' && (
-            <Button
-              type='primary'
-              icon={<PlusOutlined />}
-              onClick={() => void navigate('/geographic-objects/create')}
-            >
-              Yangi ob'yekt
-            </Button>
-          )}
+        {user?.role === 'dkp_filial' && (
+          <Button
+            type='primary'
+            icon={<PlusOutlined />}
+            onClick={() => void navigate('/geographic-objects/create')}
+          >
+            Yangi obyekt
+          </Button>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className='flex flex-wrap items-center gap-2'>
+        <Input
+          prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+          placeholder='Ariza raqami'
+          allowClear
+          value={applicationNumber}
+          onChange={(e) => {
+            setApplicationNumber(e.target.value || undefined);
+            setPage(1);
+          }}
+          style={{ width: 200 }}
+        />
+
+        <Select
+          allowClear
+          placeholder="Holat bo'yicha"
+          options={STATUS_OPTIONS}
+          value={status}
+          onChange={(val) => { setStatus(val); setPage(1); }}
+          style={{ width: 260 }}
+        />
+
+        {isAdmin && (
           <Select
             allowClear
-            placeholder="Holat bo'yicha filter"
-            options={STATUS_OPTIONS}
-            value={status}
+            placeholder='Viloyat'
+            options={regions?.map((r) => ({ value: r.id, label: r.nameUz }))}
+            value={regionId}
             onChange={(val) => {
-              setStatus(val);
+              setRegionId(val);
+              setDistrictId(undefined);
               setPage(1);
             }}
-            className='w-72'
+            style={{ width: 200 }}
           />
-        </div>
+        )}
+
+        {(isAdmin || isRegional) && (
+          <Select
+            allowClear
+            placeholder='Tuman'
+            options={districts?.map((d) => ({ value: d.id, label: d.nameUz }))}
+            value={districtId}
+            onChange={(val) => { setDistrictId(val); setPage(1); }}
+            disabled={isAdmin && !regionId}
+            style={{ width: 200 }}
+          />
+        )}
       </div>
 
       <Tabs

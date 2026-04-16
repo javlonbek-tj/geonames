@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { Spin } from 'antd';
-import { ArrowLeftOutlined, ExpandOutlined, CloseOutlined } from '@ant-design/icons';
+import {
+  ArrowLeftOutlined,
+  ExpandOutlined,
+  CloseOutlined,
+} from '@ant-design/icons';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { publicApi } from '@/api/public.api';
@@ -13,7 +17,10 @@ interface GeoObject {
   nameKrill: string | null;
   registryNumber: string | null;
   soato?: string | null;
-  objectType?: { nameUz: string; category?: { nameUz: string; code?: string | null } | null } | null;
+  objectType?: {
+    nameUz: string;
+    category?: { nameUz: string; code?: string | null } | null;
+  } | null;
   region?: { nameUz: string } | null;
   district?: { nameUz: string } | null;
   affiliation?: string | null;
@@ -26,11 +33,18 @@ interface GeoObject {
 
 const TILES = {
   osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  satellite:
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
 } as const;
 type TileKey = keyof typeof TILES;
 
-function MapInstance({ geometry, height }: { geometry: object; height: number | string }) {
+function MapInstance({
+  geometry,
+  height,
+}: {
+  geometry: object;
+  height: number | string;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
@@ -38,37 +52,55 @@ function MapInstance({ geometry, height }: { geometry: object; height: number | 
 
   useEffect(() => {
     if (!ref.current) return;
-    const map = L.map(ref.current, { zoomControl: true, attributionControl: false });
+    const map = L.map(ref.current, {
+      zoomControl: true,
+      attributionControl: false,
+    });
     tileLayerRef.current = L.tileLayer(TILES.osm).addTo(map);
     mapRef.current = map;
     try {
       const layer = L.geoJSON(geometry as Parameters<typeof L.geoJSON>[0], {
         pointToLayer: (_, latlng) =>
-          L.circleMarker(latlng, { radius: 8, color: '#1565c0', fillColor: '#1565c0', fillOpacity: 0.8 }),
+          L.circleMarker(latlng, {
+            radius: 8,
+            color: '#1565c0',
+            fillColor: '#1565c0',
+            fillOpacity: 0.8,
+          }),
         style: { color: '#1565c0', weight: 2 },
       }).addTo(map);
       map.fitBounds(layer.getBounds(), { padding: [32, 32], maxZoom: 15 });
     } catch {}
-    return () => { map.remove(); mapRef.current = null; tileLayerRef.current = null; };
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      tileLayerRef.current = null;
+    };
   }, [geometry]);
 
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     if (tileLayerRef.current) map.removeLayer(tileLayerRef.current);
-    const opts: L.TileLayerOptions = tileKey === 'satellite' ? { maxNativeZoom: 17 } : {};
+    const opts: L.TileLayerOptions =
+      tileKey === 'satellite' ? { maxNativeZoom: 17 } : {};
     tileLayerRef.current = L.tileLayer(TILES[tileKey], opts).addTo(map);
     tileLayerRef.current.bringToBack();
   }, [tileKey]);
 
   return (
-    <div className='relative w-full overflow-hidden' style={{ height, borderRadius: 8 }}>
+    <div
+      className='relative w-full overflow-hidden'
+      style={{ height, borderRadius: 8 }}
+    >
       <div ref={ref} className='w-full h-full' />
       <div className='absolute bottom-3 right-3 z-[1000] flex rounded-lg overflow-hidden shadow border border-gray-200 text-xs font-medium'>
         <button
           onClick={() => setTileKey('osm')}
           className={`px-3 py-1.5 cursor-pointer transition-colors ${
-            tileKey === 'osm' ? 'bg-[#1565c0] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+            tileKey === 'osm'
+              ? 'bg-[#1565c0] text-white'
+              : 'bg-white text-gray-600 hover:bg-gray-50'
           }`}
         >
           Xarita
@@ -76,7 +108,9 @@ function MapInstance({ geometry, height }: { geometry: object; height: number | 
         <button
           onClick={() => setTileKey('satellite')}
           className={`px-3 py-1.5 cursor-pointer transition-colors border-l border-gray-200 ${
-            tileKey === 'satellite' ? 'bg-[#1565c0] text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+            tileKey === 'satellite'
+              ? 'bg-[#1565c0] text-white'
+              : 'bg-white text-gray-600 hover:bg-gray-50'
           }`}
         >
           Satellite
@@ -90,7 +124,9 @@ function Row({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
     <div className='flex gap-2 py-1.5 border-b border-gray-100 last:border-0'>
-      <span className='text-xs text-gray-400 w-36 shrink-0 pt-0.5'>{label}</span>
+      <span className='text-xs text-gray-400 w-36 shrink-0 pt-0.5'>
+        {label}
+      </span>
       <span className='text-sm text-[#0f1f3d] font-medium'>{value}</span>
     </div>
   );
@@ -102,7 +138,8 @@ function CommentRow({ value }: { value?: string | null }) {
   const [expanded, setExpanded] = useState(false);
   if (!value) return null;
   const isLong = value.length > COMMENT_LIMIT;
-  const displayed = isLong && !expanded ? value.slice(0, COMMENT_LIMIT) + '...' : value;
+  const displayed =
+    isLong && !expanded ? value.slice(0, COMMENT_LIMIT) + '...' : value;
 
   return (
     <div className='flex gap-2 py-1.5 border-b border-gray-100 last:border-0'>
@@ -114,7 +151,7 @@ function CommentRow({ value }: { value?: string | null }) {
             onClick={() => setExpanded((v) => !v)}
             className='ml-1.5 text-xs text-[#1565c0] hover:underline cursor-pointer bg-transparent border-0 p-0'
           >
-            {expanded ? 'Kamroq ko\'rsatish' : 'Ko\'proq ko\'rsatish'}
+            {expanded ? "Kamroq ko'rsatish" : "Ko'proq ko'rsatish"}
           </button>
         )}
       </span>
@@ -129,7 +166,10 @@ export default function GeoObjectDetailPage() {
 
   const { data: obj, isLoading } = useQuery({
     queryKey: ['public-geo-object', id],
-    queryFn: () => publicApi.getRegistryObject(Number(id)).then((r) => r.data.data as GeoObject),
+    queryFn: () =>
+      publicApi
+        .getRegistryObject(Number(id))
+        .then((r) => r.data.data as GeoObject),
     enabled: !!id,
   });
 
@@ -176,17 +216,17 @@ export default function GeoObjectDetailPage() {
           <p className='text-xs font-bold text-gray-400 uppercase tracking-widest mb-3'>
             Ma'lumotlar
           </p>
-          <Row label="Nomi (lotin)"      value={obj.nameUz} />
-          <Row label="Nomi (kirill)"     value={obj.nameKrill} />
-          <Row label="Reyestr raqami"    value={obj.registryNumber} />
-          <Row label="SOATO"             value={obj.soato} />
-          <Row label="Guruh"             value={obj.objectType?.category?.nameUz} />
-          <Row label="Ob'yekt turi"      value={obj.objectType?.nameUz} />
-          <Row label="Viloyat"           value={obj.region?.nameUz} />
-          <Row label="Tuman"             value={obj.district?.nameUz} />
-          <Row label="Tegishlilik"       value={obj.affiliation} />
-          <Row label="Tarixiy nomi"      value={obj.historicalName} />
-          <Row label="Me'yoriy hujjat"   value={obj.basisDocument} />
+          <Row label='Nomi (lotin)' value={obj.nameUz} />
+          <Row label='Nomi (kirill)' value={obj.nameKrill} />
+          <Row label='Reyestr raqami' value={obj.registryNumber} />
+          <Row label='SOATO' value={obj.soato} />
+          <Row label='Guruh' value={obj.objectType?.category?.nameUz} />
+          <Row label='Obyekt turi' value={obj.objectType?.nameUz} />
+          <Row label='Viloyat' value={obj.region?.nameUz} />
+          <Row label='Tuman' value={obj.district?.nameUz} />
+          <Row label='Tegishlilik' value={obj.affiliation} />
+          <Row label='Tarixiy nomi' value={obj.historicalName} />
+          <Row label="Me'yoriy hujjat" value={obj.basisDocument} />
           <CommentRow value={obj.comment} />
         </div>
 
@@ -207,18 +247,29 @@ export default function GeoObjectDetailPage() {
               </button>
             )}
           </div>
-          {obj.geometry
-            ? !fullscreen && <MapInstance geometry={obj.geometry} height={340} />
-            : <div className='flex items-center justify-center h-64 text-gray-300 text-sm'>Geometriya mavjud emas</div>
-          }
+          {obj.geometry ? (
+            !fullscreen && <MapInstance geometry={obj.geometry} height={340} />
+          ) : (
+            <div className='flex items-center justify-center h-64 text-gray-300 text-sm'>
+              Geometriya mavjud emas
+            </div>
+          )}
         </div>
       </div>
 
       {/* Fullscreen map */}
       {fullscreen && obj.geometry && (
-        <div className='fixed inset-0 z-[9999] flex flex-col' style={{ background: '#000' }}>
-          <div className='flex items-center justify-between px-4 py-3 shrink-0' style={{ background: '#0f1f3d' }}>
-            <span className='text-white font-semibold text-sm'>{obj.nameUz ?? 'Xaritada joylashuvi'}</span>
+        <div
+          className='fixed inset-0 z-[9999] flex flex-col'
+          style={{ background: '#000' }}
+        >
+          <div
+            className='flex items-center justify-between px-4 py-3 shrink-0'
+            style={{ background: '#0f1f3d' }}
+          >
+            <span className='text-white font-semibold text-sm'>
+              {obj.nameUz ?? 'Xaritada joylashuvi'}
+            </span>
             <button
               onClick={() => setFullscreen(false)}
               className='w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer border-0 transition-colors'

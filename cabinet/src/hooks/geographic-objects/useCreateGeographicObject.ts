@@ -13,7 +13,7 @@ export function useCreateGeographicObject() {
     mutationFn: geographicObjectsApi.create,
     onSuccess: ({ data }) => {
       void queryClient.invalidateQueries({ queryKey: applicationKeys.all });
-      void message.success("Geografik ob'yekt yaratildi");
+      void message.success('Geografik obyekt yaratildi');
       void navigate('/applications');
     },
     onError: (error: { response?: { data?: { message?: string } } }) => {

@@ -80,7 +80,7 @@ function validateAndExtract(
       validTypeIds.size > 0 &&
       !validTypeIds.has(objectTypeId)
     ) {
-      // Reyestrda yo'q ob'yektlarda ham noto'g'ri ID bo'lsa xabar ber
+      // Reyestrda yo'q obyektlarda ham noto'g'ri ID bo'lsa xabar ber
       errors.push(`object_type_id=${objectTypeId} bazada topilmadi`);
     }
 
@@ -245,7 +245,7 @@ export default function CreateGeographicObjectPage() {
             onFinish={onFinish}
           >
             <Form.Item
-              label='Reestrdа mavjudmi?'
+              label='Reyestrdа mavjudmi?'
               name='existsInRegistry'
               valuePropName='checked'
             >
@@ -339,7 +339,7 @@ export default function CreateGeographicObjectPage() {
                 >
                   {allErrors
                     ? `Xatolik bor (${errorCount} ta)`
-                    : `Ariza yuborish (${objects.length} ta ob'yekt)`}
+                    : `Ariza yuborish (${objects.length} ta obyekt)`}
                 </Button>
               </div>
             </Card>

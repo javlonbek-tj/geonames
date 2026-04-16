@@ -57,7 +57,11 @@ function CopyableNumber({ value }: { value: string }) {
         }}
       >
         {value}
-        {copied ? <CheckOutlined style={{ fontSize: 10 }} /> : <CopyOutlined style={{ fontSize: 10 }} />}
+        {copied ? (
+          <CheckOutlined style={{ fontSize: 10 }} />
+        ) : (
+          <CopyOutlined style={{ fontSize: 10 }} />
+        )}
       </span>
     </Tooltip>
   );
@@ -72,27 +76,42 @@ export default function RegistryPage() {
     page: Number(searchParams.get('page') || 1),
     limit: Number(searchParams.get('limit') || DEFAULT_LIMIT),
     search: searchParams.get('search') || undefined,
-    regionId: searchParams.get('regionId') ? Number(searchParams.get('regionId')) : undefined,
-    districtId: searchParams.get('districtId') ? Number(searchParams.get('districtId')) : undefined,
-    categoryId: searchParams.get('categoryId') ? Number(searchParams.get('categoryId')) : undefined,
-    objectTypeId: searchParams.get('objectTypeId') ? Number(searchParams.get('objectTypeId')) : undefined,
+    regionId: searchParams.get('regionId')
+      ? Number(searchParams.get('regionId'))
+      : undefined,
+    districtId: searchParams.get('districtId')
+      ? Number(searchParams.get('districtId'))
+      : undefined,
+    categoryId: searchParams.get('categoryId')
+      ? Number(searchParams.get('categoryId'))
+      : undefined,
+    objectTypeId: searchParams.get('objectTypeId')
+      ? Number(searchParams.get('objectTypeId'))
+      : undefined,
   };
   const selectedCategoryId = filters.categoryId;
 
-  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const [searchInput, setSearchInput] = useState(
+    searchParams.get('search') || '',
+  );
 
-  const setFilters = useCallback((updater: RegistryParams | ((prev: RegistryParams) => RegistryParams)) => {
-    const next = typeof updater === 'function' ? updater(filters) : updater;
-    const params = new URLSearchParams();
-    if (next.page && next.page !== 1) params.set('page', String(next.page));
-    if (next.limit && next.limit !== DEFAULT_LIMIT) params.set('limit', String(next.limit));
-    if (next.search) params.set('search', next.search);
-    if (next.regionId) params.set('regionId', String(next.regionId));
-    if (next.districtId) params.set('districtId', String(next.districtId));
-    if (next.categoryId) params.set('categoryId', String(next.categoryId));
-    if (next.objectTypeId) params.set('objectTypeId', String(next.objectTypeId));
-    setSearchParams(params, { replace: true });
-  }, [filters, setSearchParams]);
+  const setFilters = useCallback(
+    (updater: RegistryParams | ((prev: RegistryParams) => RegistryParams)) => {
+      const next = typeof updater === 'function' ? updater(filters) : updater;
+      const params = new URLSearchParams();
+      if (next.page && next.page !== 1) params.set('page', String(next.page));
+      if (next.limit && next.limit !== DEFAULT_LIMIT)
+        params.set('limit', String(next.limit));
+      if (next.search) params.set('search', next.search);
+      if (next.regionId) params.set('regionId', String(next.regionId));
+      if (next.districtId) params.set('districtId', String(next.districtId));
+      if (next.categoryId) params.set('categoryId', String(next.categoryId));
+      if (next.objectTypeId)
+        params.set('objectTypeId', String(next.objectTypeId));
+      setSearchParams(params, { replace: true });
+    },
+    [filters, setSearchParams],
+  );
 
   // Edit modal
   const [editObj, setEditObj] = useState<GeographicObject | null>(null);
@@ -107,7 +126,8 @@ export default function RegistryPage() {
   );
   const { data: categories = [] } = useAdminCategories();
 
-  const { mutate: updateObj, isPending: isUpdating } = useUpdateRegistryObject();
+  const { mutate: updateObj, isPending: isUpdating } =
+    useUpdateRegistryObject();
   const { mutate: deleteObj } = useDeleteRegistryObject();
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
@@ -169,7 +189,7 @@ export default function RegistryPage() {
   const handleDelete = (id: number, name?: string | null) => {
     Modal.confirm({
       title: "O'chirishni tasdiqlaysizmi?",
-      content: name ? `"${name}" ob'yekti o'chiriladi` : "Ob'yekt o'chiriladi",
+      content: name ? `"${name}" obyekti o'chiriladi` : "Obyekt o'chiriladi",
       okText: "O'chirish",
       cancelText: 'Bekor qilish',
       okButtonProps: { danger: true },
@@ -177,8 +197,14 @@ export default function RegistryPage() {
       onOk: () =>
         new Promise((resolve, reject) => {
           deleteObj(id, {
-            onSuccess: () => { message.success("Ob'yekt o'chirildi"); resolve(undefined); },
-            onError: () => { message.error('Xatolik yuz berdi'); reject(); },
+            onSuccess: () => {
+              message.success("Obyekt o'chirildi");
+              resolve(undefined);
+            },
+            onError: () => {
+              message.error('Xatolik yuz berdi');
+              reject();
+            },
           });
         }),
     });
@@ -190,14 +216,18 @@ export default function RegistryPage() {
       key: 'index',
       width: 52,
       render: (_: unknown, __: GeographicObject, index: number) =>
-        ((filters.page ?? 1) - 1) * (filters.limit ?? DEFAULT_LIMIT) + index + 1,
+        ((filters.page ?? 1) - 1) * (filters.limit ?? DEFAULT_LIMIT) +
+        index +
+        1,
     },
     {
       title: 'Nomi',
       key: 'nameUz',
       width: 200,
       render: (obj: GeographicObject) => (
-        <Text className="font-medium">{obj.nameUz || <Text type="secondary">—</Text>}</Text>
+        <Text className='font-medium'>
+          {obj.nameUz || <Text type='secondary'>—</Text>}
+        </Text>
       ),
     },
     {
@@ -206,8 +236,8 @@ export default function RegistryPage() {
       width: 180,
       render: (obj: GeographicObject) => {
         const cat = obj.objectType?.category;
-        if (!cat) return <Text type="secondary">—</Text>;
-        return <Text className="text-sm">{cat.nameUz}</Text>;
+        if (!cat) return <Text type='secondary'>—</Text>;
+        return <Text className='text-sm'>{cat.nameUz}</Text>;
       },
     },
     {
@@ -216,9 +246,9 @@ export default function RegistryPage() {
       width: 160,
       render: (obj: GeographicObject) =>
         obj.objectType ? (
-          <Text className="text-sm">{obj.objectType.nameUz}</Text>
+          <Text className='text-sm'>{obj.objectType.nameUz}</Text>
         ) : (
-          <Text type="secondary">—</Text>
+          <Text type='secondary'>—</Text>
         ),
     },
     {
@@ -226,9 +256,11 @@ export default function RegistryPage() {
       key: 'location',
       width: 160,
       render: (obj: GeographicObject) => (
-        <div className="leading-tight">
-          <div className="text-sm">{obj.region?.nameUz ?? '—'}</div>
-          <Text type="secondary" className="text-xs">{obj.district?.nameUz}</Text>
+        <div className='leading-tight'>
+          <div className='text-sm'>{obj.region?.nameUz ?? '—'}</div>
+          <Text type='secondary' className='text-xs'>
+            {obj.district?.nameUz}
+          </Text>
         </div>
       ),
     },
@@ -239,10 +271,10 @@ export default function RegistryPage() {
       render: (obj: GeographicObject) =>
         obj.affiliation ? (
           <Tooltip title={obj.affiliation}>
-            <Text className="text-sm line-clamp-2">{obj.affiliation}</Text>
+            <Text className='text-sm line-clamp-2'>{obj.affiliation}</Text>
           </Tooltip>
         ) : (
-          <Text type="secondary">—</Text>
+          <Text type='secondary'>—</Text>
         ),
     },
     {
@@ -251,10 +283,10 @@ export default function RegistryPage() {
       render: (obj: GeographicObject) =>
         obj.basisDocument ? (
           <Tooltip title={obj.basisDocument}>
-            <Text className="text-sm line-clamp-2">{obj.basisDocument}</Text>
+            <Text className='text-sm line-clamp-2'>{obj.basisDocument}</Text>
           </Tooltip>
         ) : (
-          <Text type="secondary">—</Text>
+          <Text type='secondary'>—</Text>
         ),
     },
     {
@@ -265,7 +297,7 @@ export default function RegistryPage() {
         obj.registryNumber ? (
           <CopyableNumber value={obj.registryNumber} />
         ) : (
-          <Text type="secondary">—</Text>
+          <Text type='secondary'>—</Text>
         ),
     },
     {
@@ -277,21 +309,21 @@ export default function RegistryPage() {
         <Space size={4}>
           <Tooltip title="Ko'rish">
             <Button
-              size="small"
+              size='small'
               icon={<EyeOutlined />}
               onClick={() => navigate(`/geographic-objects/${obj.id}`)}
             />
           </Tooltip>
-          <Tooltip title="Tahrirlash">
+          <Tooltip title='Tahrirlash'>
             <Button
-              size="small"
+              size='small'
               icon={<EditOutlined />}
               onClick={() => openEdit(obj)}
             />
           </Tooltip>
           <Tooltip title="O'chirish">
             <Button
-              size="small"
+              size='small'
               danger
               icon={<DeleteOutlined />}
               onClick={() => handleDelete(obj.id, obj.nameUz)}
@@ -303,19 +335,21 @@ export default function RegistryPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <Title level={4} className="m-0">
+    <div className='flex flex-col gap-4'>
+      <Title level={4} className='m-0'>
         Geografik obyektlar reyestri
       </Title>
 
       {/* Filters */}
-      <Card size="small">
-        <div className="flex flex-wrap gap-2 items-end">
-          <div className="flex-1 min-w-48">
-            <div className="text-xs text-gray-500 mb-1">Qidirish (nomi bo'yicha)</div>
+      <Card size='small'>
+        <div className='flex flex-wrap gap-2 items-end'>
+          <div className='flex-1 min-w-48'>
+            <div className='text-xs text-gray-500 mb-1'>
+              Qidirish (nomi bo'yicha)
+            </div>
             <Input
               placeholder="Nom yoki reyestr raqami bo'yicha..."
-              prefix={<SearchOutlined className="text-gray-400" />}
+              prefix={<SearchOutlined className='text-gray-400' />}
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onPressEnter={applySearch}
@@ -326,61 +360,85 @@ export default function RegistryPage() {
               }}
             />
           </div>
-          <div className="w-44">
-            <div className="text-xs text-gray-500 mb-1">Viloyat</div>
+          <div className='w-44'>
+            <div className='text-xs text-gray-500 mb-1'>Viloyat</div>
             <Select
-              placeholder="Barchasi"
+              placeholder='Barchasi'
               allowClear
-              className="w-full"
+              className='w-full'
               value={filters.regionId}
               options={regions.map((r) => ({ value: r.id, label: r.nameUz }))}
               onChange={(v) =>
-                setFilters((f) => ({ ...f, page: 1, regionId: v, districtId: undefined }))
+                setFilters((f) => ({
+                  ...f,
+                  page: 1,
+                  regionId: v,
+                  districtId: undefined,
+                }))
               }
             />
           </div>
-          <div className="w-44">
-            <div className="text-xs text-gray-500 mb-1">Tuman</div>
+          <div className='w-44'>
+            <div className='text-xs text-gray-500 mb-1'>Tuman</div>
             <Select
-              placeholder="Barchasi"
+              placeholder='Barchasi'
               allowClear
-              className="w-full"
+              className='w-full'
               disabled={!filters.regionId}
               value={filters.districtId}
-              options={filterDistricts.map((d) => ({ value: d.id, label: d.nameUz }))}
-              onChange={(v) => setFilters((f) => ({ ...f, page: 1, districtId: v }))}
+              options={filterDistricts.map((d) => ({
+                value: d.id,
+                label: d.nameUz,
+              }))}
+              onChange={(v) =>
+                setFilters((f) => ({ ...f, page: 1, districtId: v }))
+              }
             />
           </div>
-          <div className="w-48">
-            <div className="text-xs text-gray-500 mb-1">Guruh</div>
+          <div className='w-48'>
+            <div className='text-xs text-gray-500 mb-1'>Guruh</div>
             <Select
-              placeholder="Barchasi"
+              placeholder='Barchasi'
               allowClear
-              className="w-full"
+              className='w-full'
               value={selectedCategoryId}
               options={categories.map((c) => ({
                 value: c.id,
                 label: c.code ? `[${c.code}] ${c.nameUz}` : c.nameUz,
               }))}
               onChange={(v) => {
-                setFilters((f) => ({ ...f, page: 1, categoryId: v, objectTypeId: undefined }));
+                setFilters((f) => ({
+                  ...f,
+                  page: 1,
+                  categoryId: v,
+                  objectTypeId: undefined,
+                }));
               }}
             />
           </div>
-          <div className="w-48">
-            <div className="text-xs text-gray-500 mb-1">Tur</div>
+          <div className='w-48'>
+            <div className='text-xs text-gray-500 mb-1'>Tur</div>
             <Select
-              placeholder="Barchasi"
+              placeholder='Barchasi'
               allowClear
-              className="w-full"
+              className='w-full'
               disabled={!selectedCategoryId}
               value={filters.objectTypeId}
-              options={typeOptions.map((t) => ({ value: t.id, label: t.nameUz }))}
-              onChange={(v) => setFilters((f) => ({ ...f, page: 1, objectTypeId: v }))}
+              options={typeOptions.map((t) => ({
+                value: t.id,
+                label: t.nameUz,
+              }))}
+              onChange={(v) =>
+                setFilters((f) => ({ ...f, page: 1, objectTypeId: v }))
+              }
             />
           </div>
           <Space>
-            <Button type="primary" icon={<SearchOutlined />} onClick={applySearch}>
+            <Button
+              type='primary'
+              icon={<SearchOutlined />}
+              onClick={applySearch}
+            >
               Qidirish
             </Button>
             {hasFilters && (
@@ -393,13 +451,12 @@ export default function RegistryPage() {
       </Card>
 
       {/* Table */}
-      <Card size="small" styles={{ body: { padding: 0 } }}>
+      <Card size='small' styles={{ body: { padding: 0 } }}>
         <Table
           dataSource={data?.data ?? []}
           columns={columns}
-          rowKey="id"
+          rowKey='id'
           loading={isFetching}
-
           pagination={{
             current: filters.page ?? 1,
             pageSize: filters.limit ?? DEFAULT_LIMIT,
@@ -407,16 +464,16 @@ export default function RegistryPage() {
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50', '100'],
             showTotal: (total) => (
-              <span className="inline-flex items-center gap-1 px-3 py-0.5 rounded text-sm font-medium text-blue-600 bg-blue-50">
+              <span className='inline-flex items-center gap-1 px-3 py-0.5 rounded text-sm font-medium text-blue-600 bg-blue-50'>
                 Jami: {total} ta
               </span>
             ),
             onChange: (page, pageSize) =>
               setFilters((f) => ({ ...f, page, limit: pageSize })),
           }}
-          size="small"
+          size='small'
           bordered
-          className="registry-table"
+          className='registry-table'
           scroll={{ x: 1100 }}
         />
       </Card>
@@ -424,71 +481,86 @@ export default function RegistryPage() {
       {/* Edit Modal */}
       <Modal
         open={!!editObj}
-        title="Ob'yektni tahrirlash"
-        onCancel={() => { setEditObj(null); editForm.resetFields(); }}
+        title='Obyektni tahrirlash'
+        onCancel={() => {
+          setEditObj(null);
+          editForm.resetFields();
+        }}
         onOk={() => editForm.submit()}
         confirmLoading={isUpdating}
-        okText="Saqlash"
-        cancelText="Bekor qilish"
+        okText='Saqlash'
+        cancelText='Bekor qilish'
         width={600}
         destroyOnClose
       >
         <Form
           form={editForm}
-          layout="vertical"
+          layout='vertical'
           onFinish={handleEditSubmit}
-          className="pt-2"
+          className='pt-2'
         >
-          <div className="grid grid-cols-2 gap-x-4">
-            <Form.Item label="Nomi (lotin)" name="nameUz"
-              rules={[{ required: true, message: 'Nom kiritilishi shart' }]}>
+          <div className='grid grid-cols-2 gap-x-4'>
+            <Form.Item
+              label='Nomi (lotin)'
+              name='nameUz'
+              rules={[{ required: true, message: 'Nom kiritilishi shart' }]}
+            >
               <Input />
             </Form.Item>
-            <Form.Item label="Nomi (kirill)" name="nameKrill">
+            <Form.Item label='Nomi (kirill)' name='nameKrill'>
               <Input />
             </Form.Item>
-            <Form.Item label="Tarixiy nomi" name="historicalName">
+            <Form.Item label='Tarixiy nomi' name='historicalName'>
               <Input />
             </Form.Item>
-            <Form.Item label="Reyestr raqami" name="registryNumber">
+            <Form.Item label='Reyestr raqami' name='registryNumber'>
               <Input />
             </Form.Item>
-            <Form.Item label="Viloyat" name="regionId">
+            <Form.Item label='Viloyat' name='regionId'>
               <Select
                 options={regions.map((r) => ({ value: r.id, label: r.nameUz }))}
                 onChange={() => editForm.setFieldValue('districtId', undefined)}
               />
             </Form.Item>
-            <Form.Item label="Tuman" name="districtId">
+            <Form.Item label='Tuman' name='districtId'>
               <Select
-                options={editDistricts.map((d) => ({ value: d.id, label: d.nameUz }))}
+                options={editDistricts.map((d) => ({
+                  value: d.id,
+                  label: d.nameUz,
+                }))}
               />
             </Form.Item>
-            <Form.Item label="Guruh" name="categoryId">
+            <Form.Item label='Guruh' name='categoryId'>
               <Select
                 allowClear
-                options={categories.map((c) => ({ value: c.id, label: c.nameUz }))}
+                options={categories.map((c) => ({
+                  value: c.id,
+                  label: c.nameUz,
+                }))}
                 onChange={(v) => {
                   setEditCategoryId(v);
                   editForm.setFieldValue('objectTypeId', undefined);
                 }}
               />
             </Form.Item>
-            <Form.Item label="Tur" name="objectTypeId">
+            <Form.Item label='Tur' name='objectTypeId'>
               <Select
                 allowClear
                 disabled={!editCategoryId}
-                options={editTypeOptions.map((t) => ({ value: t.id, label: t.nameUz }))}
+                options={editTypeOptions.map((t) => ({
+                  value: t.id,
+                  label: t.nameUz,
+                }))}
               />
             </Form.Item>
           </div>
-          <Form.Item label="Tegishlilik" name="affiliation">
+          <Form.Item label='Tegishlilik' name='affiliation'>
             <Input />
           </Form.Item>
-          <Form.Item label="Me'yoriy hujjat" name="basisDocument">
+          <Form.Item label="Me'yoriy hujjat" name='basisDocument'>
             <Input.TextArea rows={2} />
           </Form.Item>
-          <Form.Item label="Izoh" name="comment">
+          <Form.Item label='Izoh' name='comment'>
             <Input.TextArea rows={2} />
           </Form.Item>
         </Form>

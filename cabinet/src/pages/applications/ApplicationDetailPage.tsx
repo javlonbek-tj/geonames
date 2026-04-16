@@ -420,7 +420,7 @@ export default function ApplicationDetailPage() {
       },
     },
     {
-      title: 'Reestrdа',
+      title: 'Reyestrdа',
       dataIndex: 'existsInRegistry',
       key: 'existsInRegistry',
       width: 90,
@@ -521,7 +521,7 @@ export default function ApplicationDetailPage() {
             </Descriptions>
           </Card>
 
-          {/* Geografik ob'yektlar */}
+          {/* Geografik obyektlar */}
           <Card
             title={`Geografik obyektlar (${geoObjects.length} ta)`}
             size='small'
@@ -544,7 +544,7 @@ export default function ApplicationDetailPage() {
                 type='info'
                 showIcon
                 className='mb-3'
-                message="Xaritadagi joylashuvga qarab har bir ob'yektga nom bering"
+                message='Xaritadagi joylashuvga qarab har bir obyektga nom bering'
               />
             )}
             <Table

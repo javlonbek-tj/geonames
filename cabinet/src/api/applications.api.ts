@@ -6,6 +6,9 @@ export interface ApplicationsParams {
   limit?: number;
   status?: string;
   tab?: 'active' | 'history';
+  applicationNumber?: string;
+  regionId?: number;
+  districtId?: number;
 }
 
 export const applicationsApi = {

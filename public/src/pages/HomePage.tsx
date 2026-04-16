@@ -45,7 +45,7 @@ export default function HomePage() {
             <div className='hidden lg:flex justify-center opacity-60'>
               <img
                 src={heroPng}
-                alt='Geografik nomlar reestri'
+                alt='Geografik nomlar reyestri'
                 className='w-full max-w-lg object-contain'
                 style={{ maxHeight: 340 }}
               />

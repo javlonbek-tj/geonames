@@ -71,7 +71,7 @@ export default function NonCompliantPage() {
       render: (v: string) => v || <Text type='secondary'>Nomsiz</Text>,
     },
     {
-      title: "Ob'yekt turi",
+      title: 'Obyekt turi',
       dataIndex: 'objectType',
       key: 'objectType',
     },
