@@ -58,7 +58,10 @@ export async function deleteDocument(documentId: number, user: JwtPayload) {
   if (!doc) throw new AppError('Hujjat topilmadi', 404);
 
   if (doc.uploadedBy !== user.userId && user.role !== 'admin') {
-    throw new AppError("Siz faqat o'zingiz yuklagan hujjatlarni o'chira olasiz", 403);
+    throw new AppError(
+      "Siz faqat o'zingiz yuklagan hujjatlarni o'chira olasiz",
+      403,
+    );
   }
 
   const absolutePath = path.join(process.cwd(), doc.filePath);

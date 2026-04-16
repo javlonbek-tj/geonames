@@ -2,6 +2,7 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '../../db/db';
 import { commissionApprovals, applications, users } from '../../db/schema';
 import { AppError } from '../../utils/appError';
+import { APP_STATUS } from '../../constants/app-status';
 import type { JwtPayload } from '../auth/auth.service';
 
 export const REQUIRED_POSITIONS = [
@@ -28,7 +29,7 @@ async function checkAndGetUser(user: JwtPayload) {
   if (!userData?.position) {
     throw new AppError("Sizning lavozimingiz belgilanmagan. Administrator bilan bog'laning.", 400);
   }
-  return userData;
+  return userData as { position: NonNullable<typeof userData.position>; districtId: number | null };
 }
 
 async function checkStep(applicationId: number, userData: { districtId: number | null }) {
@@ -37,7 +38,7 @@ async function checkStep(applicationId: number, userData: { districtId: number |
     with: { geographicObjects: { columns: { districtId: true }, limit: 1 } },
   });
   if (!app) throw new AppError('Ariza topilmadi', 404);
-  if (app.currentStatus !== 'step_2_1_district_commission') {
+  if (app.currentStatus !== APP_STATUS.STEP_2_1_DISTRICT_COMMISSION) {
     throw new AppError("Ariza tuman komissiyasi bosqichida emas", 400);
   }
   const geoDistrict = app.geographicObjects?.[0]?.districtId;
@@ -89,7 +90,7 @@ export async function revokeApproval(applicationId: number, user: JwtPayload) {
     where: eq(applications.id, applicationId),
     columns: { currentStatus: true },
   });
-  if (app?.currentStatus !== 'step_2_1_district_commission') {
+  if (app?.currentStatus !== APP_STATUS.STEP_2_1_DISTRICT_COMMISSION) {
     throw new AppError("Kelishuvni qaytarib bo'lmaydi — ariza boshqa bosqichda", 400);
   }
 

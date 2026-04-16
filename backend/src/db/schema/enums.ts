@@ -49,9 +49,6 @@ export const actionTypeEnum = pgEnum('action_type', [
   'approve',
   'reject',
   'return',
-  'attach_document',
-  'assign_registry_number',
-  'confirm_geometry',
 ]);
 
 export const documentTypeEnum = pgEnum('document_type', [

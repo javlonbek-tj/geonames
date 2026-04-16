@@ -33,8 +33,13 @@ export async function updateObjectNames(req: Request, res: Response) {
   const parsed = updateObjectNamesSchema.safeParse(req.body);
   if (!parsed.success) throw new AppError(parsed.error.issues[0].message, 400);
 
-  await service.updateObjectNames(Number(req.params.applicationId), parsed.data, req.user!);
-  res.status(200).json({ status: 'success', message: "Nomlar muvaffaqiyatli saqlandi" });
+  await service.updateObjectNames(
+    Number(req.params.applicationId),
+    parsed.data,
+  );
+  res
+    .status(200)
+    .json({ status: 'success', message: 'Nomlar muvaffaqiyatli saqlandi' });
 }
 
 export async function getRegistry(req: Request, res: Response) {
@@ -42,11 +47,25 @@ export async function getRegistry(req: Request, res: Response) {
   const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
   const search = req.query.search ? String(req.query.search) : undefined;
   const regionId = req.query.regionId ? Number(req.query.regionId) : undefined;
-  const districtId = req.query.districtId ? Number(req.query.districtId) : undefined;
-  const objectTypeId = req.query.objectTypeId ? Number(req.query.objectTypeId) : undefined;
-  const categoryId = req.query.categoryId ? Number(req.query.categoryId) : undefined;
+  const districtId = req.query.districtId
+    ? Number(req.query.districtId)
+    : undefined;
+  const objectTypeId = req.query.objectTypeId
+    ? Number(req.query.objectTypeId)
+    : undefined;
+  const categoryId = req.query.categoryId
+    ? Number(req.query.categoryId)
+    : undefined;
 
-  const result = await service.getRegistry({ page, limit, search, regionId, districtId, objectTypeId, categoryId });
+  const result = await service.getRegistry({
+    page,
+    limit,
+    search,
+    regionId,
+    districtId,
+    objectTypeId,
+    categoryId,
+  });
   res.status(200).json({ status: 'success', ...result });
 }
 
@@ -54,13 +73,16 @@ export async function updateRegistryObject(req: Request, res: Response) {
   const parsed = updateRegistryObjectSchema.safeParse(req.body);
   if (!parsed.success) throw new AppError(parsed.error.issues[0].message, 400);
 
-  const data = await service.updateRegistryObject(Number(req.params.id), parsed.data);
+  const data = await service.updateRegistryObject(
+    Number(req.params.id),
+    parsed.data,
+  );
   res.status(200).json({ status: 'success', data });
 }
 
 export async function deleteRegistryObject(req: Request, res: Response) {
   await service.deleteRegistryObject(Number(req.params.id));
-  res.status(200).json({ status: 'success', message: "Ob'yekt o'chirildi" });
+  res.status(200).json({ status: 'success', message: "Obyekt o'chirildi" });
 }
 
 export async function updateGeometry(req: Request, res: Response) {

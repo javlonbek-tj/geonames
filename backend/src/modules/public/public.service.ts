@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 import jwt from 'jsonwebtoken';
-import { and, eq, gt } from 'drizzle-orm';
+import { and, eq, gt, inArray } from 'drizzle-orm';
 import { db } from '../../db/db';
 import {
   citizens,
@@ -97,7 +97,28 @@ export async function listDiscussions(
   citizenId: number | null,
   filters: { regionId?: number; districtId?: number } = {},
 ) {
-  const rows = await db.query.publicDiscussions.findMany({
+  let discussionWhere = undefined;
+
+  if (filters.districtId || filters.regionId) {
+    const geoConditions = [];
+    if (filters.districtId)
+      geoConditions.push(eq(geographicObjects.districtId, filters.districtId));
+    if (filters.regionId)
+      geoConditions.push(eq(geographicObjects.regionId, filters.regionId));
+
+    const matchingIds = (
+      await db
+        .select({ id: geographicObjects.id })
+        .from(geographicObjects)
+        .where(and(...geoConditions))
+    ).map((g) => g.id);
+
+    if (matchingIds.length === 0) return [];
+    discussionWhere = inArray(publicDiscussions.geoObjectId, matchingIds);
+  }
+
+  const filtered = await db.query.publicDiscussions.findMany({
+    where: discussionWhere,
     with: {
       geoObject: {
         with: {
@@ -109,12 +130,6 @@ export async function listDiscussions(
       votes: { columns: { vote: true, citizenId: true } },
     },
     orderBy: (t, { desc }) => [desc(t.createdAt)],
-  });
-
-  const filtered = rows.filter((d) => {
-    if (filters.districtId && d.geoObject?.districtId !== filters.districtId) return false;
-    if (filters.regionId && d.geoObject?.regionId !== filters.regionId) return false;
-    return true;
   });
 
   return filtered.map((d) => {
@@ -144,7 +159,7 @@ export async function listDiscussions(
 }
 
 export async function getDiscussion(id: number, citizenId: number | null) {
-  const d = await db.query.publicDiscussions.findFirst({
+  const discussion = await db.query.publicDiscussions.findFirst({
     where: eq(publicDiscussions.id, id),
     with: {
       geoObject: {
@@ -160,7 +175,7 @@ export async function getDiscussion(id: number, citizenId: number | null) {
     },
   });
 
-  if (!d) throw new AppError('Muhokama topilmadi', 404);
+  if (!discussion) throw new AppError('Muhokama topilmadi', 404);
 
   const allVotes = await db.query.publicVotes.findMany({
     where: eq(publicVotes.discussionId, id),
@@ -170,12 +185,12 @@ export async function getDiscussion(id: number, citizenId: number | null) {
   const supportCount = allVotes.filter((v) => v.vote === 'support').length;
   const opposeCount = allVotes.filter((v) => v.vote === 'oppose').length;
 
-  const geo = d.geoObject;
+  const geo = discussion.geoObject;
 
   return {
-    id: d.id,
-    applicationId: d.applicationId,
-    geoObjectId: d.geoObjectId,
+    id: discussion.id,
+    applicationId: discussion.applicationId,
+    geoObjectId: discussion.geoObjectId,
     proposedNameUz: geo?.nameUz ?? '—',
     proposedNameKrill: geo?.nameKrill ?? null,
     objectType: geo?.objectType?.nameUz ?? '—',
@@ -183,11 +198,11 @@ export async function getDiscussion(id: number, citizenId: number | null) {
     regionName: geo?.region?.nameUz ?? null,
     districtName: geo?.district?.nameUz ?? null,
     geometry: (geo?.geometry ?? null) as object | null,
-    endsAt: d.endsAt.toISOString(),
+    endsAt: discussion.endsAt.toISOString(),
     supportCount,
     opposeCount,
     voteCount: supportCount + opposeCount,
-    myVote: (d.votes[0]?.vote ?? null) as 'support' | 'oppose' | null,
+    myVote: (discussion.votes[0]?.vote ?? null) as 'support' | 'oppose' | null,
   };
 }
 

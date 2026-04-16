@@ -8,6 +8,7 @@ import {
   objectTypes,
   geoObjectFlags,
 } from '../../db/schema';
+import { APP_STATUS } from '../../constants/app-status';
 import { AppError } from '../../utils/appError';
 import type { JwtPayload } from '../auth/auth.service';
 import type {
@@ -17,16 +18,14 @@ import type {
   UpdateRegistryObjectInput,
 } from './geographic-objects.schema';
 
-function generateApplicationNumber(): string {
+function formatApplicationNumber(id: number): string {
   const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 90000) + 10000;
-  return `GEO-${year}-${random}`;
+  return `GEO-${year}-${String(id).padStart(6, '0')}`;
 }
 
-function generateRegistryNumber(): string {
+function formatRegistryNumber(id: number): string {
   const year = new Date().getFullYear();
-  const random = Math.floor(Math.random() * 900000) + 100000;
-  return `REG-${year}-${random}`;
+  return `REG-${year}-${String(id).padStart(6, '0')}`;
 }
 
 export async function getMyObjects(
@@ -94,17 +93,14 @@ export async function getObjectById(id: number) {
                 },
               },
             },
-            orderBy: (
-              h: { createdAt: unknown },
-              { asc }: { asc: (col: unknown) => unknown },
-            ) => asc(h.createdAt),
+            orderBy: (h, { asc }) => asc(h.createdAt),
           },
         },
       },
     },
   });
 
-  if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
+  if (!obj) throw new AppError('Geografik obyekt topilmadi', 404);
   return obj;
 }
 
@@ -127,14 +123,14 @@ export async function createGeographicObjects(
     const missingReg = input.objects.some((o) => !o.registryNumber?.trim());
     if (missingReg) {
       throw new AppError(
-        'Reestrdа mavjud obyektlar uchun reyestr raqami kiritilishi shart',
+        'Reyestrdа mavjud obyektlar uchun reyestr raqami kiritilishi shart',
         400,
       );
     }
     const missingType = input.objects.some((o) => !o.objectTypeId);
     if (missingType) {
       throw new AppError(
-        'Reestrdа mavjud obyektlar uchun obyekt turi (object_type_id) kiritilishi shart',
+        'Reyestrdа mavjud obyektlar uchun obyekt turi (object_type_id) kiritilishi shart',
         400,
       );
     }
@@ -144,11 +140,17 @@ export async function createGeographicObjects(
     const [app] = await tx
       .insert(applications)
       .values({
-        applicationNumber: generateApplicationNumber(),
-        currentStatus: 'step_1_geometry_uploaded',
+        applicationNumber: 'temp',
+        currentStatus: APP_STATUS.STEP_1_GEOMETRY_UPLOADED,
         createdBy: user.userId,
       })
       .returning();
+
+    const applicationNumber = formatApplicationNumber(app.id);
+    await tx
+      .update(applications)
+      .set({ applicationNumber })
+      .where(eq(applications.id, app.id));
 
     const geoObjs = await tx
       .insert(geographicObjects)
@@ -173,23 +175,22 @@ export async function createGeographicObjects(
     await tx.insert(applicationHistory).values({
       applicationId: app.id,
       fromStatus: null,
-      toStatus: 'step_1_geometry_uploaded',
+      toStatus: APP_STATUS.STEP_1_GEOMETRY_UPLOADED,
       actionType: 'submit',
       performedBy: user.userId,
-      comment: `${geoObjs.length} ta geografik ob'yekt geometriyasi yuklandi`,
+      comment: `${geoObjs.length} ta geografik obyekt geometriyasi yuklandi`,
     });
 
     return { application: app, geographicObjects: geoObjs };
   });
 }
 
-// Tuman hokimligi: nomlarni kiritadi va reyestr raqamlarini avtomatik shakllantiradi
+// District administration: names are entered and the registry numbers are automatically generated
 export async function updateObjectNames(
   applicationId: number,
   input: UpdateObjectNamesInput,
-  user: JwtPayload,
 ) {
-  // Barcha ob'yektlar shu arizaga tegishliligini tekshiramiz
+  // Check if all objects belong to this application
   const objectIds = input.objects.map((o) => o.id);
   const existing = await db.query.geographicObjects.findMany({
     where: and(
@@ -200,12 +201,12 @@ export async function updateObjectNames(
 
   if (existing.length !== objectIds.length) {
     throw new AppError(
-      "Bir yoki bir nechta ob'yekt bu arizaga tegishli emas",
+      'Bir yoki bir nechta obyekt bu arizaga tegishli emas',
       400,
     );
   }
 
-  // Nomuvofiqlar jadvalida xuddi shu tuman uchun bir xil nom borligini tekshirish
+  // Check if there is the same name in this district for this application inside flagged objects
   const districtId = existing[0]?.districtId;
   if (districtId) {
     const proposedNames = input.objects
@@ -213,7 +214,7 @@ export async function updateObjectNames(
       .filter(Boolean) as string[];
 
     if (proposedNames.length > 0) {
-      // Shu tumandagi barcha flaglangan geo obyektlarni olamiz
+      // Get all geo object flags for this district
       const flaggedObjects = await db.query.geoObjectFlags.findMany({
         with: {
           geoObject: { columns: { nameUz: true, districtId: true } },
@@ -247,7 +248,7 @@ export async function updateObjectNames(
           objectTypeId: obj.objectTypeId,
           registryNumber: current.existsInRegistry
             ? current.registryNumber
-            : generateRegistryNumber(),
+            : formatRegistryNumber(obj.id),
           updatedAt: new Date(),
         })
         .where(eq(geographicObjects.id, obj.id));
@@ -339,7 +340,7 @@ export async function updateRegistryObject(
   const obj = await db.query.geographicObjects.findFirst({
     where: eq(geographicObjects.id, id),
   });
-  if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
+  if (!obj) throw new AppError('Geografik obyekt topilmadi', 404);
 
   const [updated] = await db
     .update(geographicObjects)
@@ -354,7 +355,7 @@ export async function deleteRegistryObject(id: number) {
   const obj = await db.query.geographicObjects.findFirst({
     where: eq(geographicObjects.id, id),
   });
-  if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
+  if (!obj) throw new AppError('Geografik obyekt topilmadi', 404);
 
   await db.delete(geographicObjects).where(eq(geographicObjects.id, id));
 }
@@ -367,7 +368,7 @@ export async function updateGeometry(
   const obj = await db.query.geographicObjects.findFirst({
     where: eq(geographicObjects.id, id),
   });
-  if (!obj) throw new AppError("Geografik ob'yekt topilmadi", 404);
+  if (!obj) throw new AppError('Geografik obyekt topilmadi', 404);
   if (obj.createdBy !== user.userId) {
     throw new AppError(
       "Siz faqat o'z obyektlaringizni tahrirlashingiz mumkin",

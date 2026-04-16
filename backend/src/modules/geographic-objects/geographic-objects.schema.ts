@@ -14,8 +14,8 @@ const geometrySchema = z.looseObject({
   ]),
 });
 
-// existsInRegistry=true  → GeoJSON properties'dan: nameUz, nameKrill, registryNumber
-// existsInRegistry=false → nom yo'q (keyinroq workflow'da kiritiladi)
+// existsInRegistry=true  →  nameUz, nameKrill, registryNumber are taken from geojson
+// existsInRegistry=false →  no name, later in workflow
 const objectItemSchema = z.object({
   nameUz: z.string().trim().min(1).max(200).optional(),
   nameKrill: z.string().trim().max(200).optional(),
@@ -30,7 +30,7 @@ export const createGeographicObjectSchema = z.object({
   existsInRegistry: z.boolean(),
   objects: z
     .array(objectItemSchema)
-    .min(1, "Kamida bitta ob'yekt kiritilishi shart"),
+    .min(1, 'Kamida bitta obyekt kiritilishi shart'),
 });
 
 export const updateObjectNamesSchema = z.object({

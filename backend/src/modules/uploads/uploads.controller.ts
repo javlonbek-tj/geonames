@@ -13,7 +13,8 @@ export async function uploadDocument(req: Request, res: Response) {
   }
 
   const ext = req.file.originalname.split('.').pop()?.toLowerCase() ?? '';
-  const documentType = (ext === 'geojson' || ext === 'json') ? 'geometry_file' : 'attachment';
+  const documentType =
+    ext === 'geojson' || ext === 'json' ? 'geometry_file' : 'attachment';
 
   const doc = await service.saveDocument(
     applicationId,
@@ -25,7 +26,6 @@ export async function uploadDocument(req: Request, res: Response) {
   res.status(201).json({
     status: 'success',
     data: doc,
-    // filePath ni to'g'ridan-to'g'ri action attachments ga uzatish mumkin
     filePath: doc.filePath,
   });
 }

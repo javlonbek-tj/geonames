@@ -5,11 +5,22 @@ import { AppError } from '../../utils/appError';
 
 export async function getApplications(req: Request, res: Response) {
   const page = Math.max(1, Number(req.query.page) || 1);
-  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
   const status = req.query.status as string | undefined;
   const tab = req.query.tab as string | undefined;
+  const applicationNumber = (req.query.applicationNumber as string | undefined)?.trim() || undefined;
+  const regionId = req.query.regionId ? Number(req.query.regionId) : undefined;
+  const districtId = req.query.districtId ? Number(req.query.districtId) : undefined;
 
-  const result = await service.getApplications(req.user!, { page, limit, status, tab });
+  const result = await service.getApplications(req.user!, {
+    page,
+    limit,
+    status,
+    tab,
+    applicationNumber,
+    regionId,
+    districtId,
+  });
   res.status(200).json({ status: 'success', ...result });
 }
 
@@ -36,7 +47,6 @@ export async function getAvailableActions(req: Request, res: Response) {
   const actions = service.getAvailableActionsForUser(
     app.currentStatus,
     req.user!.role,
-    firstGeo?.existsInRegistry,
   );
   res.status(200).json({ status: 'success', data: actions });
 }

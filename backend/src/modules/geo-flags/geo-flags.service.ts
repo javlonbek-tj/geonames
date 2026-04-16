@@ -1,7 +1,6 @@
 import { eq, and } from 'drizzle-orm';
 import { db } from '../../db/db';
-import { geoObjectFlags, geographicObjects, applications } from '../../db/schema';
-import { AppError } from '../../utils/appError';
+import { geoObjectFlags } from '../../db/schema';
 
 export async function toggleFlag(
   applicationId: number,

@@ -1,8 +1,7 @@
-import { randomBytes } from 'crypto';
 import TelegramBot from 'node-telegram-bot-api';
 import { ENV } from '../../config';
 import { db } from '../../db/db';
-import { citizens, citizenOtps } from '../../db/schema';
+import { citizens } from '../../db/schema';
 import { eq } from 'drizzle-orm';
 
 let bot: TelegramBot | null = null;
@@ -15,11 +14,10 @@ export async function sendOtp(telegramId: string, code: string): Promise<void> {
   if (!bot) throw new Error('Telegram bot ishga tushmagan');
   await bot.sendMessage(
     telegramId,
-    `🔐 Geonames tasdiqlash kodi:\n\n*${code}*\n\n_Kod 5 daqiqa davomida amal qiladi._`,
+    `🔐 Geonomlar tasdiqlash kodi:\n\n*${code}*\n\n_Kod 5 daqiqa davomida amal qiladi._`,
     { parse_mode: 'Markdown' },
   );
 }
-
 
 export function startBot(): void {
   if (!ENV.TELEGRAM_BOT_TOKEN) {
@@ -29,64 +27,36 @@ export function startBot(): void {
 
   bot = new TelegramBot(ENV.TELEGRAM_BOT_TOKEN, { polling: true });
 
-  bot.onText(/\/start(?:\s+(.+))?/, async (msg, match) => {
+  bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     const telegramId = String(chatId);
-    const param = match?.[1]?.trim();
 
-    // Foydalanuvchini saqlash yoki yangilash
+    // Save or update citizen
     await db
       .insert(citizens)
       .values({
         telegramId,
-        fullName: [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(' ') || null,
+        fullName:
+          [msg.from?.first_name, msg.from?.last_name]
+            .filter(Boolean)
+            .join(' ') || null,
         username: msg.from?.username ?? null,
       })
       .onConflictDoUpdate({
         target: citizens.telegramId,
         set: {
-          fullName: [msg.from?.first_name, msg.from?.last_name].filter(Boolean).join(' ') || null,
+          fullName:
+            [msg.from?.first_name, msg.from?.last_name]
+              .filter(Boolean)
+              .join(' ') || null,
           username: msg.from?.username ?? null,
           updatedAt: new Date(),
         },
       });
 
-    // Login deep-link: /start login_<sessionId>
-    if (param?.startsWith('login_')) {
-      const sessionId = param.slice('login_'.length);
-
-      const citizen = await db.query.citizens.findFirst({
-        where: eq(citizens.telegramId, telegramId),
-      });
-
-      if (!citizen) {
-        await bot!.sendMessage(chatId, "Siz hali ro'yxatdan o'tmagansiz. Avval telefon raqamingizni ulashing:", {
-          reply_markup: {
-            keyboard: [[{ text: '📱 Telefon raqamni ulashish', request_contact: true }]],
-            resize_keyboard: true,
-            one_time_keyboard: true,
-          },
-        });
-        return;
-      }
-
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-      await db.insert(citizenOtps).values({ sessionId, telegramId, code, expiresAt });
-
-      await bot!.sendMessage(
-        chatId,
-        `🔐 Geonames tasdiqlash kodi:\n\n*${code}*\n\n_Kod 5 daqiqa davomida amal qiladi._`,
-        { parse_mode: 'Markdown' },
-      );
-      return;
-    }
-
-    // Oddiy /start — telefon so'rash
     await bot!.sendMessage(
       chatId,
-      `Salom! Geonames portaliga xush kelibsiz.\n\nTizimga kirish uchun telefon raqamingizni ulashing:`,
+      `Assalomu alaykum! Geonomlar portaliga xush kelibsiz.\n\nTizimga kirish uchun telefon raqamingizni ulashing:`,
       {
         reply_markup: {
           keyboard: [
@@ -116,7 +86,7 @@ export function startBot(): void {
 
     await bot!.sendMessage(
       chatId,
-      `✅ Telefon raqamingiz saqlandi: *${normalizedPhone}*\n\nEndi ommaviy muhokama portaliga kirishingiz mumkin.`,
+      `✅ Telefon raqamingiz saqlandi: *${normalizedPhone}*\n\nEndi Geonomlar axborot portaliga kirishingiz mumkin.`,
       { parse_mode: 'Markdown', reply_markup: { remove_keyboard: true } },
     );
   });

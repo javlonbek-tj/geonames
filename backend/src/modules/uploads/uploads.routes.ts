@@ -7,16 +7,6 @@ const router = Router();
 
 router.use(authenticate);
 
-// POST /api/uploads/applications/:applicationId
-//   Body: multipart/form-data
-//   Fields: file (required), documentType (optional)
-//   Mumkin documentType qiymatlari:
-//     dalolatnoma | district_commission_conclusion | regional_commission_conclusion
-//     official_letter | decision_draft | expertise_conclusion | other
-//
-// GET  /api/uploads/applications/:applicationId  — Ariza hujjatlari ro'yxati
-// DELETE /api/uploads/documents/:documentId      — Hujjatni o'chirish
-
 router.post(
   '/applications/:applicationId',
   uploadMiddleware.single('file'),

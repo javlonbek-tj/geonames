@@ -18,11 +18,11 @@ export const citizens = pgTable('citizens', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// OTP kodlari (Telegram orqali yuboriladi)
+// OTP codes, sent by telegram
 export const citizenOtps = pgTable('citizen_otps', {
   id: serial('id').primaryKey(),
   sessionId: text('session_id').notNull().unique(),
-  telegramId: varchar('telegram_id', { length: 50 }),
+  telegramId: varchar('telegram_id', { length: 50 }).unique(),
   phone: varchar('phone', { length: 20 }),
   code: varchar('code', { length: 6 }).notNull(),
   used: boolean('used').default(false).notNull(),
