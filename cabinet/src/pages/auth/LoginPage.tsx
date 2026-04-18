@@ -1,4 +1,5 @@
-import { Input, Button } from 'antd';
+import { useEffect, useState } from 'react';
+import { Input, Button, Spin } from 'antd';
 import { EyeOutlined, EyeInvisibleOutlined } from '@ant-design/icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +10,8 @@ const inputClass =
   'bg-transparent border-0 border-b-2 border-b-[#CBDDF1] rounded-none shadow-none text-[#e0e0ff] pl-0';
 
 export default function LoginPage() {
-  const { mutate, isPending } = useLogin();
+  const { mutate, isPending, retryAfter, clearRetryAfter } = useLogin();
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const {
     control,
@@ -20,7 +22,34 @@ export default function LoginPage() {
     defaultValues: { username: '', password: '' },
   });
 
-  const onSubmit = handleSubmit((values) => mutate(values));
+  useEffect(() => {
+    if (!retryAfter) return;
+    setCountdown(retryAfter);
+
+    const interval = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          clearRetryAfter();
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [retryAfter]);
+
+  const isBlocked = countdown !== null;
+  const onSubmit = handleSubmit((values) => {
+    if (!isBlocked) mutate(values);
+  });
+
+  const buttonLabel = () => {
+    if (isPending) return <Spin size='small' />;
+    if (isBlocked) return `${countdown} s`;
+    return 'Kirish';
+  };
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-[#1a1a2e] p-6'>
@@ -46,6 +75,7 @@ export default function LoginPage() {
                   autoComplete='off'
                   className={inputClass}
                   id='username'
+                  disabled={isBlocked}
                 />
               )}
             />
@@ -72,10 +102,13 @@ export default function LoginPage() {
                   autoComplete='current-password'
                   className={inputClass}
                   id='password'
+                  disabled={isBlocked}
                   iconRender={(visible) =>
-                    visible
-                      ? <EyeOutlined style={{ color: '#CBDDF1' }} />
-                      : <EyeInvisibleOutlined style={{ color: '#CBDDF1' }} />
+                    visible ? (
+                      <EyeOutlined style={{ color: '#CBDDF1' }} />
+                    ) : (
+                      <EyeInvisibleOutlined style={{ color: '#CBDDF1' }} />
+                    )
                   }
                 />
               )}
@@ -87,13 +120,19 @@ export default function LoginPage() {
             )}
           </div>
 
+          {isBlocked && (
+            <p className='text-xs text-red-400 text-center -mt-2'>
+              Juda ko&apos;p urinish. {countdown} soniyadan keyin qayta urinib ko&apos;ring.
+            </p>
+          )}
+
           <div className='flex justify-end'>
             <Button
               htmlType='submit'
-              loading={isPending}
+              disabled={isPending || isBlocked}
               className='w-24 bg-transparent border border-[#CBDDF1] text-[#CBDDF1] tracking-widest rounded-none uppercase'
             >
-              Kirish
+              {buttonLabel()}
             </Button>
           </div>
         </form>

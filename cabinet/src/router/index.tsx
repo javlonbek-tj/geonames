@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, RouterProvider, Navigate } from 'react-router';
 import { lazy, Suspense } from 'react';
 import { Spin } from 'antd';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -41,7 +41,7 @@ const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: '/', element: wrap(ApplicationsPage) },
+          { path: '/', element: <Navigate to='/applications' replace /> },
           { path: '/applications', element: wrap(ApplicationsPage) },
           { path: '/applications/:id', element: wrap(ApplicationDetailPage) },
           { path: '/geographic-objects', element: wrap(RegistryPage) },

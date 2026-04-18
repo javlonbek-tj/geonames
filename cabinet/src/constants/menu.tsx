@@ -6,6 +6,7 @@ import {
   WarningOutlined,
   CompassOutlined,
 } from '@ant-design/icons';
+import { ROLES } from '@/types';
 import type { UserRole } from '@/types';
 
 export interface MenuItem {
@@ -15,41 +16,43 @@ export interface MenuItem {
   roles: UserRole[] | null;
 }
 
+const iconStyle = { fontSize: 18 };
+
 export const menuItems: MenuItem[] = [
   {
     key: '/applications',
-    icon: <FileTextOutlined />,
+    icon: <FileTextOutlined style={iconStyle} />,
     label: 'Arizalar',
     roles: null,
   },
   {
     key: '/geographic-objects',
-    icon: <GlobalOutlined />,
+    icon: <GlobalOutlined style={iconStyle} />,
     label: 'Reyestr',
     roles: null,
   },
   {
     key: '/admin/users',
-    icon: <TeamOutlined />,
+    icon: <TeamOutlined style={iconStyle} />,
     label: 'Foydalanuvchilar',
-    roles: ['admin'],
+    roles: [ROLES.ADMIN],
   },
   {
     key: '/admin/object-types',
-    icon: <AppstoreOutlined />,
+    icon: <AppstoreOutlined style={iconStyle} />,
     label: 'Obyekt turlari',
-    roles: ['admin'],
+    roles: [ROLES.ADMIN],
   },
   {
     key: '/non-compliant',
-    icon: <WarningOutlined />,
+    icon: <WarningOutlined style={iconStyle} />,
     label: 'Nomuvofiqlar',
-    roles: ['kadastr_agency', 'dkp_central', 'admin'],
+    roles: [ROLES.KADASTR_AGENCY, ROLES.DKP_CENTRAL, ROLES.ADMIN],
   },
   {
     key: '/map',
-    icon: <CompassOutlined />,
+    icon: <CompassOutlined style={iconStyle} />,
     label: 'Ochiq xarita',
-    roles: ['admin'],
+    roles: [ROLES.ADMIN],
   },
 ];

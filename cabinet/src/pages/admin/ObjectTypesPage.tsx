@@ -76,7 +76,11 @@ export default function ObjectTypesPage() {
     catForm.resetFields();
   };
 
-  const handleCatSubmit = (values: { nameUz: string; nameKrill?: string }) => {
+  const handleCatSubmit = (values: {
+    code: string;
+    nameUz: string;
+    nameKrill?: string;
+  }) => {
     if (catModal?.mode === 'create') {
       createCat(values, { onSuccess: closeCatModal });
     } else {
@@ -122,7 +126,7 @@ export default function ObjectTypesPage() {
       key: 'nameUz',
       render: (c: ObjectCategory) => (
         <button
-          className={`text-left w-full px-2 py-1 rounded transition-colors ${selectedCategoryId === c.id ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50'}`}
+          className={`text-left w-full px-2 py-1 cursor-pointer rounded transition-colors ${selectedCategoryId === c.id ? 'bg-blue-50 text-blue-600 font-medium' : 'hover:bg-gray-50'}`}
           onClick={() =>
             setSelectedCategoryId(c.id === selectedCategoryId ? null : c.id)
           }
@@ -222,7 +226,7 @@ export default function ObjectTypesPage() {
       </Title>
 
       <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-        {/* Kategoriyalar */}
+        {/* Categories */}
         <Card
           title='Kategoriyalar'
           size='small'
@@ -300,7 +304,7 @@ export default function ObjectTypesPage() {
         confirmLoading={isCreatingCat || isUpdatingCat}
         okText='Saqlash'
         cancelText='Bekor qilish'
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={catForm}
@@ -311,7 +315,10 @@ export default function ObjectTypesPage() {
           <Form.Item
             label='Kod'
             name='code'
-            rules={[{ required: true, message: 'Kod kiritilishi shart' }]}
+            rules={[
+              { required: true, message: 'Kod kiritilishi shart' },
+              { max: 20, message: 'Kod 20 ta belgidan oshmasligi kerak' },
+            ]}
             extra='Qisqa kod, masalan: APU, MHU, MTU'
           >
             <Input
@@ -323,12 +330,21 @@ export default function ObjectTypesPage() {
           <Form.Item
             label='Nomi (lotin)'
             name='nameUz'
-            rules={[{ required: true, message: 'Nom kiritilishi shart' }]}
+            rules={[
+              { required: true, message: 'Nom kiritilishi shart' },
+              { max: 200, message: 'Nom 200 ta belgidan oshmasligi kerak' },
+            ]}
           >
-            <Input placeholder='Kategoriya nomi' />
+            <Input placeholder='Kategoriya nomi' maxLength={200} />
           </Form.Item>
-          <Form.Item label='Nomi (kirill)' name='nameKrill'>
-            <Input placeholder='Kirill (ixtiyoriy)' />
+          <Form.Item
+            label='Nomi (kirill)'
+            name='nameKrill'
+            rules={[
+              { max: 200, message: 'Nom 200 ta belgidan oshmasligi kerak' },
+            ]}
+          >
+            <Input placeholder='Kirill (ixtiyoriy)' maxLength={200} />
           </Form.Item>
         </Form>
       </Modal>
@@ -342,7 +358,7 @@ export default function ObjectTypesPage() {
         confirmLoading={isCreatingType || isUpdatingType}
         okText='Saqlash'
         cancelText='Bekor qilish'
-        destroyOnClose
+        destroyOnHidden
       >
         <Form
           form={typeForm}
@@ -353,12 +369,21 @@ export default function ObjectTypesPage() {
           <Form.Item
             label='Nomi (lotin)'
             name='nameUz'
-            rules={[{ required: true, message: 'Nom kiritilishi shart' }]}
+            rules={[
+              { required: true, message: 'Nom kiritilishi shart' },
+              { max: 200, message: 'Nom 200 ta belgidan oshmasligi kerak' },
+            ]}
           >
-            <Input placeholder='Tur nomi' />
+            <Input placeholder='Tur nomi' maxLength={200} />
           </Form.Item>
-          <Form.Item label='Nomi (kirill)' name='nameKrill'>
-            <Input placeholder='Kirill (ixtiyoriy)' />
+          <Form.Item
+            label='Nomi (kirill)'
+            name='nameKrill'
+            rules={[
+              { max: 200, message: 'Nom 200 ta belgidan oshmasligi kerak' },
+            ]}
+          >
+            <Input placeholder='Kirill (ixtiyoriy)' maxLength={200} />
           </Form.Item>
           <Form.Item name='categoryId' hidden>
             <Input />

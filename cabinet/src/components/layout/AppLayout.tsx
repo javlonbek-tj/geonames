@@ -43,11 +43,10 @@ export default function AppLayout() {
   return (
     <Layout className='min-h-screen'>
       <Sidebar collapsed={collapsed} />
-      <Layout style={{ marginLeft: siderWidth, transition: 'margin-left 0.2s' }}>
-        <Header
-          className='px-0 bg-white flex items-center justify-between pr-4 border-b border-gray-200'
-          style={{ position: 'sticky', top: 0, zIndex: 100, width: '100%' }}
-        >
+      <Layout
+        style={{ marginLeft: siderWidth, transition: 'margin-left 0.2s' }}
+      >
+        <Header className='px-0 bg-white flex items-center justify-between pr-4 border-b border-gray-200 sticky top-0 z-100 w-full'>
           <Button
             type='text'
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}

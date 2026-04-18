@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { eq, ilike } from 'drizzle-orm';
 import { db } from '../../../db/db';
 import { objectCategories, objectTypes } from '../../../db/schema';
 import { AppError } from '../../../utils/appError';
@@ -19,6 +19,13 @@ export async function getCategories() {
 }
 
 export async function createCategory(input: CreateCategoryInput) {
+  const existing = await db.query.objectCategories.findFirst({
+    where: ilike(objectCategories.code, input.code),
+  });
+  if (existing) {
+    throw new AppError(`"${input.code.toUpperCase()}" kodi allaqachon mavjud`, 409);
+  }
+
   const [category] = await db
     .insert(objectCategories)
     .values(input)

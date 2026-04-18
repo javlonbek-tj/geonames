@@ -10,6 +10,18 @@ export type UserRole =
   | 'dkp_central'
 ;
 
+export const ROLES = {
+  ADMIN:               'admin',
+  DKP_FILIAL:          'dkp_filial',
+  DKP_REGIONAL:        'dkp_regional',
+  DKP_CENTRAL:         'dkp_central',
+  DISTRICT_COMMISSION: 'district_commission',
+  DISTRICT_HOKIMLIK:   'district_hokimlik',
+  REGIONAL_COMMISSION: 'regional_commission',
+  REGIONAL_HOKIMLIK:   'regional_hokimlik',
+  KADASTR_AGENCY:      'kadastr_agency',
+} as const satisfies Record<string, UserRole>;
+
 export type CommissionPosition =
   | 'hokim' | 'hokim_deputy' | 'economics_head' | 'construction_head'
   | 'poverty_head' | 'ecology_head' | 'culture_head' | 'spirituality_head'

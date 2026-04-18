@@ -1,13 +1,38 @@
 import { useState } from 'react';
 import {
-  Table, Button, Tag, Space, Input, Select, Modal, Form,
-  Popconfirm, Typography, Switch, Tooltip,
+  Table,
+  Button,
+  Tag,
+  Space,
+  Input,
+  Select,
+  Modal,
+  Form,
+  Popconfirm,
+  Typography,
+  Switch,
+  Tooltip,
 } from 'antd';
 import {
-  PlusOutlined, EditOutlined, DeleteOutlined, LockOutlined, SearchOutlined,
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  LockOutlined,
+  SearchOutlined,
 } from '@ant-design/icons';
-import { useUsers, useCreateUser, useUpdateUser, useDeleteUser, useResetPassword } from '@/hooks/admin/useUsers';
-import { useRegions, useDistricts, useAllDistricts } from '@/hooks/locations/useLocations';
+import {
+  useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useResetPassword,
+} from '@/hooks/admin/useUsers';
+import type { CreateUserPayload, UpdateUserPayload } from '@/api/admin.api';
+import {
+  useRegions,
+  useDistricts,
+  useAllDistricts,
+} from '@/hooks/locations/useLocations';
 import { ROLE_LABELS } from '@/constants';
 import { COMMISSION_POSITION_LABELS } from '@/types/user';
 import type { User, UserRole } from '@/types';
@@ -18,8 +43,16 @@ const ROLE_OPTIONS = Object.entries(ROLE_LABELS)
   .filter(([key]) => key !== 'admin')
   .map(([value, label]) => ({ value, label }));
 
-const DISTRICT_ROLES: UserRole[] = ['dkp_filial', 'district_commission', 'district_hokimlik'];
-const REGIONAL_ROLES: UserRole[] = ['dkp_regional', 'regional_commission', 'regional_hokimlik'];
+const DISTRICT_ROLES: UserRole[] = [
+  'dkp_filial',
+  'district_commission',
+  'district_hokimlik',
+];
+const REGIONAL_ROLES: UserRole[] = [
+  'dkp_regional',
+  'regional_commission',
+  'regional_hokimlik',
+];
 
 type ModalMode = 'create' | 'edit' | 'password';
 
@@ -28,18 +61,31 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState<string | undefined>();
   const [page, setPage] = useState(1);
 
-  const [modal, setModal] = useState<{ mode: ModalMode; user?: User } | null>(null);
+  const [modal, setModal] = useState<{ mode: ModalMode; user?: User } | null>(
+    null,
+  );
   const [form] = Form.useForm();
   const [selectedRole, setSelectedRole] = useState<UserRole | undefined>();
-  const [selectedRegionId, setSelectedRegionId] = useState<number | undefined>();
+  const [selectedRegionId, setSelectedRegionId] = useState<
+    number | undefined
+  >();
 
-  const { data, isLoading } = useUsers({ page, limit: 10, role: roleFilter, search: search || undefined });
+  const { data, isLoading } = useUsers({
+    page,
+    limit: 10,
+    role: roleFilter,
+    search: search || undefined,
+  });
   const { mutate: createUser, isPending: isCreating } = useCreateUser();
   const { mutate: deleteUser } = useDeleteUser();
 
   const editingId = modal?.mode !== 'create' ? modal?.user?.id : undefined;
-  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser(editingId ?? 0);
-  const { mutate: resetPassword, isPending: isResetting } = useResetPassword(editingId ?? 0);
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser(
+    editingId ?? 0,
+  );
+  const { mutate: resetPassword, isPending: isResetting } = useResetPassword(
+    editingId ?? 0,
+  );
 
   const { data: regions = [] } = useRegions();
   const { data: districts = [] } = useDistricts(selectedRegionId);
@@ -79,18 +125,23 @@ export default function UsersPage() {
     setSelectedRegionId(undefined);
   };
 
-  const handleSubmit = (values: any) => {
+  const handleSubmit = (
+    values: CreateUserPayload | UpdateUserPayload | { newPassword: string },
+  ) => {
     if (modal?.mode === 'create') {
-      createUser(values, { onSuccess: closeModal });
+      createUser(values as CreateUserPayload, { onSuccess: closeModal });
     } else if (modal?.mode === 'edit') {
-      updateUser(values, { onSuccess: closeModal });
+      updateUser(values as UpdateUserPayload, { onSuccess: closeModal });
     } else if (modal?.mode === 'password') {
-      resetPassword(values.newPassword, { onSuccess: closeModal });
+      resetPassword((values as { newPassword: string }).newPassword, {
+        onSuccess: closeModal,
+      });
     }
   };
 
   const needsDistrict = DISTRICT_ROLES.includes(selectedRole as UserRole);
-  const needsRegion = REGIONAL_ROLES.includes(selectedRole as UserRole) || needsDistrict;
+  const needsRegion =
+    REGIONAL_ROLES.includes(selectedRole as UserRole) || needsDistrict;
 
   const columns = [
     {
@@ -106,16 +157,16 @@ export default function UsersPage() {
       render: (u: User) => (
         <div>
           <div className='font-medium'>{u.fullName ?? u.username}</div>
-          <Text type='secondary' className='text-xs'>{u.username}</Text>
+          <Text type='secondary' className='text-xs'>
+            {u.username}
+          </Text>
         </div>
       ),
     },
     {
       title: 'Rol',
       key: 'role',
-      render: (u: User) => (
-        <Tag>{ROLE_LABELS[u.role] ?? u.role}</Tag>
-      ),
+      render: (u: User) => <Tag>{ROLE_LABELS[u.role] ?? u.role}</Tag>,
     },
     {
       title: 'Viloyat / Tuman',
@@ -148,10 +199,18 @@ export default function UsersPage() {
       render: (u: User) => (
         <Space size={4}>
           <Tooltip title='Tahrirlash'>
-            <Button size='small' icon={<EditOutlined />} onClick={() => openEdit(u)} />
+            <Button
+              size='small'
+              icon={<EditOutlined />}
+              onClick={() => openEdit(u)}
+            />
           </Tooltip>
           <Tooltip title='Parolni yangilash'>
-            <Button size='small' icon={<LockOutlined />} onClick={() => openPassword(u)} />
+            <Button
+              size='small'
+              icon={<LockOutlined />}
+              onClick={() => openPassword(u)}
+            />
           </Tooltip>
           <Tooltip title="O'chirish">
             <Popconfirm
@@ -170,16 +229,20 @@ export default function UsersPage() {
   ];
 
   const modalTitle =
-    modal?.mode === 'create' ? 'Yangi foydalanuvchi' :
-    modal?.mode === 'edit' ? 'Tahrirlash' :
-    'Parolni yangilash';
+    modal?.mode === 'create'
+      ? 'Yangi foydalanuvchi'
+      : modal?.mode === 'edit'
+        ? 'Tahrirlash'
+        : 'Parolni yangilash';
 
   const isPending = isCreating || isUpdating || isResetting;
 
   return (
     <div className='flex flex-col gap-4'>
       <div className='flex items-center justify-between'>
-        <Title level={4} className='m-0'>Foydalanuvchilar</Title>
+        <Title level={4} className='m-0'>
+          Foydalanuvchilar
+        </Title>
         <Button type='primary' icon={<PlusOutlined />} onClick={openCreate}>
           Yangi foydalanuvchi
         </Button>
@@ -190,7 +253,10 @@ export default function UsersPage() {
           prefix={<SearchOutlined />}
           placeholder="Username bo'yicha qidirish"
           value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+          }}
           allowClear
           style={{ maxWidth: 260 }}
         />
@@ -200,7 +266,10 @@ export default function UsersPage() {
           style={{ width: 220 }}
           options={ROLE_OPTIONS}
           value={roleFilter}
-          onChange={(v) => { setRoleFilter(v); setPage(1); }}
+          onChange={(v) => {
+            setRoleFilter(v);
+            setPage(1);
+          }}
         />
       </div>
 
@@ -227,10 +296,15 @@ export default function UsersPage() {
         confirmLoading={isPending}
         okText='Saqlash'
         cancelText='Bekor qilish'
-        destroyOnClose
+        destroyOnHidden
       >
         {modal?.mode === 'password' ? (
-          <Form form={form} layout='vertical' onFinish={handleSubmit} className='pt-3'>
+          <Form
+            form={form}
+            layout='vertical'
+            onFinish={handleSubmit}
+            className='pt-3'
+          >
             <Form.Item
               label='Yangi parol'
               name='newPassword'
@@ -243,7 +317,12 @@ export default function UsersPage() {
             </Form.Item>
           </Form>
         ) : (
-          <Form form={form} layout='vertical' onFinish={handleSubmit} className='pt-3'>
+          <Form
+            form={form}
+            layout='vertical'
+            onFinish={handleSubmit}
+            className='pt-3'
+          >
             {modal?.mode === 'create' && (
               <>
                 <Form.Item
@@ -252,10 +331,14 @@ export default function UsersPage() {
                   rules={[
                     { required: true, message: 'Username kiritilishi shart' },
                     { min: 3, message: 'Kamida 3 ta belgi' },
-                    { pattern: /^[a-zA-Z0-9_]+$/, message: 'Faqat harf, raqam va _ mumkin' },
+                    { max: 50, message: '50 ta belgidan oshmasligi kerak' },
+                    {
+                      pattern: /^[a-zA-Z0-9_]+$/,
+                      message: 'Faqat harf, raqam va _ mumkin',
+                    },
                   ]}
                 >
-                  <Input placeholder='username' />
+                  <Input placeholder='username' maxLength={50} />
                 </Form.Item>
                 <Form.Item
                   label='Parol'
@@ -274,11 +357,18 @@ export default function UsersPage() {
               label='F.I.O.'
               name='fullName'
               rules={[
-                { required: modal?.mode === 'create', message: "F.I.O. kiritilishi shart" },
+                {
+                  required: modal?.mode === 'create',
+                  message: 'F.I.O. kiritilishi shart',
+                },
                 { min: 2, message: "F.I.O. kamida 2 ta belgi bo'lishi kerak" },
+                {
+                  max: 200,
+                  message: 'F.I.O. 200 ta belgidan oshmasligi kerak',
+                },
               ]}
             >
-              <Input placeholder="To'liq ism" />
+              <Input placeholder="To'liq ism" maxLength={200} />
             </Form.Item>
 
             <Form.Item
@@ -292,7 +382,10 @@ export default function UsersPage() {
                 onChange={(val) => {
                   setSelectedRole(val as UserRole);
                   setSelectedRegionId(undefined);
-                  form.setFieldsValue({ regionId: undefined, districtId: undefined });
+                  form.setFieldsValue({
+                    regionId: undefined,
+                    districtId: undefined,
+                  });
                 }}
               />
             </Form.Item>
@@ -301,11 +394,16 @@ export default function UsersPage() {
               <Form.Item
                 label='Viloyat'
                 name='regionId'
-                rules={[{ required: true, message: 'Viloyat tanlanishi shart' }]}
+                rules={[
+                  { required: true, message: 'Viloyat tanlanishi shart' },
+                ]}
               >
                 <Select
                   placeholder='Viloyat tanlang'
-                  options={regions.map((r) => ({ value: r.id, label: r.nameUz }))}
+                  options={regions.map((r) => ({
+                    value: r.id,
+                    label: r.nameUz,
+                  }))}
                   onChange={(val) => {
                     setSelectedRegionId(val as number);
                     form.setFieldValue('districtId', undefined);
@@ -323,7 +421,10 @@ export default function UsersPage() {
                 <Select
                   placeholder='Tuman tanlang'
                   disabled={!selectedRegionId}
-                  options={districts.map((d) => ({ value: d.id, label: d.nameUz }))}
+                  options={districts.map((d) => ({
+                    value: d.id,
+                    label: d.nameUz,
+                  }))}
                 />
               </Form.Item>
             )}
@@ -332,11 +433,15 @@ export default function UsersPage() {
               <Form.Item
                 label='Lavozim'
                 name='position'
-                rules={[{ required: true, message: 'Lavozim tanlanishi shart' }]}
+                rules={[
+                  { required: true, message: 'Lavozim tanlanishi shart' },
+                ]}
               >
                 <Select
                   placeholder='Lavozim tanlang'
-                  options={Object.entries(COMMISSION_POSITION_LABELS).map(([value, label]) => ({ value, label }))}
+                  options={Object.entries(COMMISSION_POSITION_LABELS).map(
+                    ([value, label]) => ({ value, label }),
+                  )}
                 />
               </Form.Item>
             )}
@@ -346,7 +451,11 @@ export default function UsersPage() {
                 <Form.Item label='Faol' name='isActive' valuePropName='checked'>
                   <Switch />
                 </Form.Item>
-                <Form.Item label='Bloklangan' name='isBlocked' valuePropName='checked'>
+                <Form.Item
+                  label='Bloklangan'
+                  name='isBlocked'
+                  valuePropName='checked'
+                >
                   <Switch />
                 </Form.Item>
               </div>
